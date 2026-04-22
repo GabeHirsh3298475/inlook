@@ -189,17 +189,30 @@ export default function TermsOfServicePage() {
 
             <Section title="9. Fees and payments">
               <p>
-                Applying to Inlook is currently free for creators and brands.
-                Inlook plans to charge a platform fee (currently expected to
-                be 10% of the transaction value) on deals facilitated through
-                the Service. Fees, billing methods, and payment timing will be
-                disclosed at the time of the transaction and/or in an
-                accompanying order form. Payment processing is handled by
-                third-party processors such as Stripe, whose terms will apply
-                to the payment itself.{" "}
-                <strong>[⚠️ LEGAL REVIEW REQUIRED]</strong> Final fee
-                structure, refund policy, and auto-renewal language must be
-                reviewed before enabling paid transactions.
+                Applying to Inlook is free for creators and brands. Inlook
+                charges a platform fee equal to 15% of the agreed deal value
+                on transactions facilitated through the Service. The platform
+                fee is deducted automatically at the time of payment via
+                Stripe Connect: 85% of the agreed deal value is paid directly
+                to the creator&rsquo;s connected Stripe account and 15% is
+                retained by Inlook as its platform fee. Inlook&rsquo;s
+                platform fee covers standard Stripe payment-processing fees;
+                creators receive 85% of the agreed deal value with no
+                additional deductions by Inlook. Payment processing itself is
+                performed by Stripe, and your use of Stripe Connect is also
+                governed by Stripe&rsquo;s{" "}
+                <a
+                  href="https://stripe.com/connect-account/legal"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent"
+                >
+                  Connected Account Agreement
+                </a>{" "}
+                and Services Agreement.{" "}
+                <strong>[⚠️ LEGAL REVIEW REQUIRED]</strong> Final refund,
+                chargeback, and dispute-handling language must be reviewed by
+                counsel before enabling paid transactions at scale.
               </p>
             </Section>
 
