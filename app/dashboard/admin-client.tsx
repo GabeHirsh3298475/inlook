@@ -48,11 +48,6 @@ export function AdminClient({
   const liveCreators = approvedCreators.filter(
     (c) => c.published && !c.admin_hidden
   );
-  const totalDeals = creators.reduce(
-    (sum, c) => sum + (c.deals_completed ?? 0),
-    0
-  );
-
   const pendingBrands = brands.filter((b) => !b.verified && !b.rejected);
   const verifiedBrands = brands.filter((b) => b.verified);
   const rejectedBrands = brands.filter((b) => b.rejected);
@@ -263,7 +258,7 @@ export function AdminClient({
           />
         ) : section === "creators" ? (
           <>
-            <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <StatCard
                 icon={Users}
                 label="Total Applications"
@@ -278,11 +273,6 @@ export function AdminClient({
                 icon={Radio}
                 label="Live on Network"
                 value={liveCreators.length}
-              />
-              <StatCard
-                icon={Handshake}
-                label="Deals Completed"
-                value={totalDeals}
               />
             </div>
 
@@ -659,10 +649,6 @@ function ApprovedRow({
             />
           )}
         <Detail label="Days" value={daysConnected.toString()} />
-        <Detail
-          label="Deals"
-          value={(creator.deals_completed ?? 0).toString()}
-        />
       </div>
       <VisibilitySwitch
         visible={!creator.admin_hidden}
