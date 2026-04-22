@@ -165,7 +165,7 @@ function Differentiator() {
               <ul className="mt-6 space-y-3 font-sans text-sm text-ink-200">
                 {[
                   "Pulled from platform data, not creator self-reports",
-                  "Re-checked weekly",
+                  "Re-checked daily",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-3">
                     <span className="mt-[7px] h-1.5 w-1.5 flex-none rounded-full bg-accent" />
