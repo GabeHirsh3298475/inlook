@@ -2,7 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Pricing · Inlook",
+  title: "Pricing — $0 for brands, 15% platform fee for creators",
+  description:
+    "Free for brands. Creators keep 85% of every deal. No subscriptions, no agency markup. Stripe Connect auto-splits payments at the time of purchase.",
+  alternates: { canonical: "/pricing" },
+  openGraph: {
+    title: "Pricing — $0 for brands, 15% platform fee for creators · Inlook",
+    description:
+      "Free for brands. Creators keep 85% of every deal. Stripe Connect auto-split.",
+    url: "/pricing",
+  },
 };
 
 export default function PricingPage() {

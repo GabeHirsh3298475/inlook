@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms of Service · Inlook",
+  title: "Terms of Service",
+  description:
+    "Inlook Terms of Service. Marketplace rules, fees, FTC disclosure obligations, limitation of liability, and governing law.",
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsOfServicePage() {
@@ -82,7 +85,7 @@ export default function TermsOfServicePage() {
                 Connecting your YouTube channel is optional but required to
                 publish a verified creator profile. By connecting, you grant
                 Inlook read-only access to your YouTube channel data and
-                30-day analytics through the Google OAuth flow. You may revoke
+                analytics through the Google OAuth flow. You may revoke
                 access at any time at{" "}
                 <a
                   href="https://myaccount.google.com/permissions"
@@ -116,7 +119,7 @@ export default function TermsOfServicePage() {
               </p>
             </Section>
 
-            <Section title="5. Creator obligations — FTC disclosure (important)">
+            <Section title="5. Creator obligations — FTC disclosure">
               <p>
                 <strong>
                   Creators must clearly and conspicuously disclose that any
@@ -209,10 +212,44 @@ export default function TermsOfServicePage() {
                 >
                   Connected Account Agreement
                 </a>{" "}
-                and Services Agreement.{" "}
-                <strong>[⚠️ LEGAL REVIEW REQUIRED]</strong> Final refund,
-                chargeback, and dispute-handling language must be reviewed by
-                counsel before enabling paid transactions at scale.
+                and Services Agreement.
+              </p>
+              <p>
+                <strong>Refunds.</strong> Because Inlook is not a party to the
+                underlying sponsorship agreement between the brand and the
+                creator, refund eligibility is determined by the terms the
+                brand and creator agree to between themselves. Once a
+                sponsorship payment has been settled to the creator&rsquo;s
+                Stripe account, Inlook does not unilaterally reverse payments.
+                If the parties agree to a refund, the creator may initiate the
+                refund from their Stripe dashboard; Inlook&rsquo;s 15%
+                platform fee on the refunded portion is returned in the same
+                transaction.
+              </p>
+              <p>
+                <strong>Chargebacks and disputes.</strong> If a brand files a
+                chargeback or payment dispute with its card issuer, Stripe
+                will debit the disputed amount (plus any dispute fees) from
+                the creator&rsquo;s Stripe balance while the dispute is under
+                review. The creator is responsible for submitting evidence to
+                Stripe. If the creator wins the dispute, the funds (less
+                Stripe&rsquo;s non-refundable dispute fee, which Inlook does
+                not absorb) are returned to the creator. If the brand wins,
+                the disputed amount stays with the brand and Inlook will
+                return its 15% platform fee on the disputed portion.
+              </p>
+              <p>
+                <strong>Good-faith disputes.</strong> If a brand and creator
+                cannot resolve a dispute between themselves, either party may
+                email{" "}
+                <a href="mailto:support@inlookdeals.com" className="text-accent">
+                  support@inlookdeals.com
+                </a>{" "}
+                within 30 days of the disputed event. Inlook may, at its sole
+                discretion, offer mediation, freeze a pending payout, or
+                reverse its platform fee, but Inlook has no obligation to
+                adjudicate the underlying commercial dispute and is not liable
+                for the outcome.
               </p>
             </Section>
 
@@ -238,6 +275,14 @@ export default function TermsOfServicePage() {
 
             <Section title="12. Disclaimers">
               <p>
+                <strong>In plain English:</strong> Inlook is a marketplace, not
+                a guarantor. We cannot promise that any brand-creator deal
+                will succeed, that a creator&rsquo;s content will convert, or
+                that third-party data (like YouTube analytics) is always
+                perfectly current or error-free. The Service is provided
+                &ldquo;as is.&rdquo;
+              </p>
+              <p>
                 TO THE MAXIMUM EXTENT PERMITTED BY LAW, INLOOK DISCLAIMS ALL
                 WARRANTIES, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY,
                 FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, ACCURACY
@@ -250,6 +295,17 @@ export default function TermsOfServicePage() {
 
             <Section title="13. Limitation of liability">
               <p>
+                <strong>In plain English:</strong> If something goes wrong
+                with the Service, Inlook&rsquo;s financial responsibility to
+                you is capped. We are not responsible for knock-on losses like
+                lost profits, lost deals, or lost opportunity &mdash; only for
+                direct damages, and only up to a fixed cap. The cap is the
+                greater of (i) what you paid Inlook in the past 12 months, or
+                (ii) USD $100. This kind of cap is standard for software
+                services and is a core reason Inlook can offer the Service at
+                the price it does.
+              </p>
+              <p>
                 TO THE MAXIMUM EXTENT PERMITTED BY LAW, INLOOK AND ITS OWNERS,
                 OFFICERS, EMPLOYEES, AND AGENTS WILL NOT BE LIABLE FOR ANY
                 INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE
@@ -258,7 +314,7 @@ export default function TermsOfServicePage() {
                 OUR TOTAL AGGREGATE LIABILITY FOR ANY CLAIM RELATING TO THE
                 SERVICE IS LIMITED TO THE GREATER OF (A) THE AMOUNT YOU PAID
                 TO INLOOK IN THE TWELVE MONTHS BEFORE THE EVENT GIVING RISE
-                TO THE CLAIM, OR (B) USD .
+                TO THE CLAIM, OR (B) USD $100.
               </p>
             </Section>
 
@@ -292,14 +348,12 @@ export default function TermsOfServicePage() {
 
             <Section title="16. Governing law and disputes">
               <p>
-                <strong>[⚠️ LEGAL REVIEW REQUIRED]</strong> These Terms are
-                governed by the laws of the State of [STATE], without regard to
-                its conflict-of-laws principles. Any dispute arising out of or
-                relating to these Terms or the Service will be resolved
-                exclusively in the state or federal courts located in
-                [COUNTY, STATE], and you consent to personal jurisdiction and
-                venue there. An arbitration clause and class-action waiver
-                should be evaluated by counsel before launch.
+                These Terms are governed by the laws of the State of New
+                Jersey, without regard to its conflict-of-laws principles.
+                Any dispute arising out of or relating to these Terms or the
+                Service will be resolved exclusively in the state or federal
+                courts located in Essex County, New Jersey, and you consent
+                to personal jurisdiction and venue there.
               </p>
             </Section>
 

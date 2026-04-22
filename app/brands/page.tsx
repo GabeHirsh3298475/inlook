@@ -1,5 +1,19 @@
+import type { Metadata } from "next";
 import { Link2, ShieldCheck, Handshake, CheckCircle2 } from "lucide-react";
 import { BrandApplicationForm } from "@/components/brand-application-form";
+
+export const metadata: Metadata = {
+  title: "For brands — Find YouTube creators who move product",
+  description:
+    "Skip the agency middle layer. Browse verified YouTube creators with real engagement data. Paste a link, verify ownership, close deals in under a week. Free for brands.",
+  alternates: { canonical: "/brands" },
+  openGraph: {
+    title: "For brands — Find YouTube creators who move product · Inlook",
+    description:
+      "Skip the agency middle layer. Browse verified YouTube creators with real engagement data. Free for brands.",
+    url: "/brands",
+  },
+};
 
 const STEPS: {
   icon: typeof Link2;

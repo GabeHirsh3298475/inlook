@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy · Inlook",
+  title: "Privacy Policy",
+  description:
+    "How Inlook collects, stores, and uses your data. Covers YouTube OAuth, Supabase storage, Clerk authentication, and your rights as a user.",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPolicyPage() {
