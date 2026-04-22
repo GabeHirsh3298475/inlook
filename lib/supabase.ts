@@ -63,6 +63,28 @@ export type AgreementEntry = {
   paidAt: string | null;
 };
 
+export type DealRow = {
+  id: string;
+  conversation_id: string;
+  brand_id: string;
+  creator_id: string;
+  format: "long" | "short";
+  brand_name: string;
+  creator_name: string;
+  creator_youtube_channel_id: string | null;
+  price: number;
+  platform_fee: number;
+  creator_payout: number;
+  creator_subscribers_at_deal: number | null;
+  creator_avg_view_rate: number | null;
+  creator_avg_engagement_rate: number | null;
+  offered_at: string | null;
+  agreed_at: string | null;
+  payment_link_sent_at: string | null;
+  paid_at: string;
+  created_at: string;
+};
+
 export type MessageRow = {
   id: string;
   conversation_id: string;
@@ -102,6 +124,7 @@ export type CreatorRow = {
   avg_engagement_rate: number | null;
   engagement_rate_30d: number | null;
   subscriber_growth_30d: number | null;
+  subscriber_growth_30d_count: number | null;
   total_videos: number | null;
   channel_bio: string | null;
   published: boolean;

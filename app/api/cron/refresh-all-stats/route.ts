@@ -93,6 +93,7 @@ async function refreshOne(creatorId: string, refreshToken: string) {
   let engagementRate = 0;
   let engagementRate30d = 0;
   let subGrowthPct = 0;
+  let subGrowthCount = 0;
 
   const lifetimeRes = await fetch(
     `https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==${channel.id}&startDate=${channelStartDate}&endDate=${today}&metrics=views,likes,comments,shares,averageViewPercentage`,
@@ -126,6 +127,7 @@ async function refreshOne(creatorId: string, refreshToken: string) {
     engagementRate30d =
       tViews > 0 ? ((tLikes + tComments + tShares) / tViews) * 100 : 0;
     const subCount = parseInt(channel.statistics.subscriberCount) || 0;
+    subGrowthCount = subsGained - subsLost;
     subGrowthPct =
       subCount > 0 ? ((subsGained - subsLost) / subCount) * 100 : 0;
   }
@@ -148,6 +150,7 @@ async function refreshOne(creatorId: string, refreshToken: string) {
       avg_engagement_rate: engagementRate,
       engagement_rate_30d: engagementRate30d,
       subscriber_growth_30d: subGrowthPct,
+      subscriber_growth_30d_count: subGrowthCount,
       stats_last_updated: new Date().toISOString(),
     })
     .eq("id", creatorId);

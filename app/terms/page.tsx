@@ -18,7 +18,7 @@ export default function TermsOfServicePage() {
             Terms of Service
           </h1>
           <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-400">
-            Effective date: April 21, 2026 · Last updated: April 21, 2026
+            Effective date: April 22, 2026 · Last updated: April 22, 2026
           </p>
 
           <div className="mt-10 space-y-8 font-sans text-[15px] leading-relaxed text-ink-200">
@@ -77,6 +77,17 @@ export default function TermsOfServicePage() {
                 does not act as an agent, talent manager, or employer of
                 creators, and does not guarantee any outcome, traffic,
                 conversion, or return on investment.
+              </p>
+              <p>
+                <strong>Administrator access.</strong> You acknowledge that
+                Inlook administrators (authorized Inlook personnel) can view
+                all account data, including verified engagement and analytics
+                metrics (e.g. subscriber counts, subscriber growth, average
+                view rate, engagement rate, view totals), profile information,
+                pricing, contact emails, and message content, for purposes of
+                operating and moderating the Service, verifying accounts,
+                resolving disputes, and complying with legal obligations.
+                Administrator access is limited to authorized personnel.
               </p>
             </Section>
 

@@ -17,7 +17,7 @@ export default function PrivacyPolicyPage() {
             Privacy Policy
           </h1>
           <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-400">
-            Effective date: April 21, 2026 · Last updated: April 21, 2026
+            Effective date: April 22, 2026 · Last updated: April 22, 2026
           </p>
 
           <div className="prose-inlook mt-10 space-y-8 font-sans text-[15px] leading-relaxed text-ink-200">
@@ -155,6 +155,18 @@ export default function PrivacyPolicyPage() {
                 creator&rsquo;s email through the Service. Similarly, creators
                 viewing a brand profile see the business name, bio, product
                 URL, and social URL &mdash; never the brand&rsquo;s email.
+              </p>
+              <p>
+                <strong>What Inlook administrators see.</strong> Inlook
+                administrators can view all creator and brand profile data,
+                including verified engagement and analytics metrics (e.g.
+                subscriber counts, subscriber growth, average view rate,
+                engagement rate, view totals), pricing, contact emails, and
+                message content, in order to operate the Service, verify
+                accounts, moderate the marketplace, resolve disputes, and
+                comply with legal obligations. Administrator access is limited
+                to authorized personnel and protected by authentication and
+                access controls.
               </p>
             </Section>
 

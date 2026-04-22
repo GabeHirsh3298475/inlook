@@ -17,7 +17,6 @@ import {
   Share2,
   Send,
   Clock,
-  Mail,
 } from "lucide-react";
 import type {
   CreatorRow,
@@ -998,7 +997,6 @@ function AgreementsPanel({
   onMarkPaymentLinkSent: (entry: AgreementEntry) => Promise<void>;
   onMarkPaid: (entry: AgreementEntry) => Promise<void>;
 }) {
-  const [policyOpen, setPolicyOpen] = useState(false);
   const brandOffers = agreements.length;
   const processing = agreements.filter(
     (a) => a.status === "agreed" || a.status === "payment_link_sent"
@@ -1013,16 +1011,8 @@ function AgreementsPanel({
         <StatCard icon={BadgeCheck} label="Completed agreements" value={completed} />
       </div>
 
-      <div className="mt-6 flex items-center justify-between">
+      <div className="mt-6">
         <h2 className="font-display text-lg font-medium text-ink-50">Agreements</h2>
-        <button
-          type="button"
-          onClick={() => setPolicyOpen(true)}
-          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-ink-700 bg-ink-850 px-4 font-sans text-[13px] font-medium text-ink-200 transition-all hover:border-accent/40 hover:text-accent"
-        >
-          <Mail className="h-3.5 w-3.5" strokeWidth={2} />
-          Email policy update
-        </button>
       </div>
 
       <div className="mt-4">
@@ -1042,7 +1032,6 @@ function AgreementsPanel({
         )}
       </div>
 
-      {policyOpen && <PolicyUpdateModal onClose={() => setPolicyOpen(false)} />}
     </div>
   );
 }
@@ -1271,126 +1260,3 @@ function SwitchRow({
   );
 }
 
-function PolicyUpdateModal({ onClose }: { onClose: () => void }) {
-  const [type, setType] = useState<"terms" | "privacy" | "both">("terms");
-  const [summary, setSummary] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
-
-  async function handleSend() {
-    setSubmitting(true);
-    setResult(null);
-    try {
-      const res = await fetch("/api/admin/send-policy-update", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, summary }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setResult(data.error ?? "Failed to send");
-      } else {
-        setResult(
-          `Sent to ${data.sent}/${data.total} recipients${
-            data.failed ? ` (${data.failed} failed)` : ""
-          }.`
-        );
-      }
-    } catch (err) {
-      setResult((err as Error).message);
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/80 p-4 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg rounded-2xl border border-ink-800 bg-ink-900 p-6"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="font-display text-xl font-medium text-ink-50">
-              Email policy update
-            </h3>
-            <p className="mt-1 font-sans text-[13px] leading-relaxed text-ink-300">
-              Notify all signed-up creators and brands that the Terms or
-              Privacy Policy has been updated. The email includes the required
-              acceptance language.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-full border border-ink-700 text-ink-300 transition-colors hover:border-ink-600 hover:text-ink-50"
-          >
-            <X className="h-4 w-4" strokeWidth={2} />
-          </button>
-        </div>
-
-        <div className="mt-5 space-y-4">
-          <div>
-            <p className="eyebrow">Policy</p>
-            <div className="mt-2 inline-flex rounded-full border border-ink-700 bg-ink-850 p-1">
-              {(["terms", "privacy", "both"] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setType(t)}
-                  className={`rounded-full px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors ${
-                    type === t
-                      ? "bg-accent text-ink-950"
-                      : "text-ink-300 hover:text-ink-50"
-                  }`}
-                >
-                  {t === "terms" ? "Terms" : t === "privacy" ? "Privacy" : "Both"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="eyebrow">Summary of changes</p>
-            <textarea
-              value={summary}
-              onChange={(e) => setSummary(e.target.value)}
-              maxLength={1000}
-              rows={4}
-              placeholder="Short plain-language summary included in the email body (optional, max 1000 chars)."
-              className="mt-2 w-full rounded-xl border border-ink-700 bg-ink-950 p-3 font-sans text-sm text-ink-50 placeholder:text-ink-500 focus:border-accent focus:outline-none"
-            />
-          </div>
-        </div>
-
-        <div className="mt-6 flex items-center justify-between gap-3">
-          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-400">
-            {result ?? ""}
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={submitting}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-ink-700 bg-ink-850 px-4 font-sans text-[13px] font-medium text-ink-300 transition-all hover:border-ink-600 hover:text-ink-50 disabled:opacity-60"
-            >
-              Close
-            </button>
-            <button
-              type="button"
-              onClick={handleSend}
-              disabled={submitting}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-accent px-4 font-sans text-[13px] font-medium text-ink-950 transition-all hover:bg-accent/90 disabled:opacity-60"
-            >
-              <Send className="h-3.5 w-3.5" strokeWidth={2} />
-              {submitting ? "Sending..." : "Send to all users"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}

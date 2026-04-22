@@ -666,7 +666,11 @@ function YouTubeStats({ creator }: { creator: CreatorRow }) {
       label: "Sub Growth (30d)",
       value:
         creator.subscriber_growth_30d != null
-          ? `${creator.subscriber_growth_30d >= 0 ? "+" : ""}${creator.subscriber_growth_30d.toFixed(2)}%`
+          ? `${creator.subscriber_growth_30d >= 0 ? "+" : ""}${creator.subscriber_growth_30d.toFixed(2)}%${
+              creator.subscriber_growth_30d_count != null
+                ? ` · ${creator.subscriber_growth_30d_count >= 0 ? "+" : ""}${creator.subscriber_growth_30d_count.toLocaleString()}`
+                : ""
+            }`
           : "—",
       accent: subGrowthPositive,
     },
