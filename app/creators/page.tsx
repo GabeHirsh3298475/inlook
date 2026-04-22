@@ -142,6 +142,36 @@ export default function JoinPage() {
       </section>
 
       <section className="relative">
+        <div className="container-x pb-16 sm:pb-20">
+          <div className="mx-auto max-w-3xl rounded-3xl border border-ink-800 bg-ink-900 p-8 shadow-card sm:p-12">
+            <p className="eyebrow">Pricing for creators</p>
+            <div className="mt-5 flex flex-wrap items-baseline gap-3">
+              <span className="font-display text-5xl font-normal tracking-tight text-ink-50 sm:text-6xl">
+                85%
+              </span>
+              <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-300">
+                of every deal, straight to you
+              </span>
+            </div>
+            <p className="mt-4 font-sans text-[15px] leading-relaxed text-ink-200">
+              Free to apply. Free to list. Inlook takes a 15% platform fee,
+              deducted automatically by Stripe at the moment of payment &mdash;
+              no invoices, no monthly dues, no payment-processing surcharges.
+              The 85% that hits your Stripe account is yours to keep.
+            </p>
+            <div className="mt-6">
+              <Link
+                href="/pricing"
+                className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent hover:underline"
+              >
+                See full pricing &rarr;
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative">
         <div className="container-x pb-28">
           <div className="relative overflow-hidden rounded-3xl border border-ink-800 bg-gradient-to-br from-ink-900 via-ink-900 to-ink-850 p-8 sm:p-12">
             <div
