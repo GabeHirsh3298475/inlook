@@ -1,0 +1,387 @@
+# Inlook
+
+Brand-creator marketplace that connects small brands with verified YouTube creators for product launch sponsorships. Creators apply, connect YouTube for verified analytics, and go live on the network. Brands browse verified creator profiles with real engagement data.
+
+## Tech Stack
+
+- **Framework:** Next.js 14.2 (App Router, server + client components)
+- **Language:** TypeScript 5.6 strict
+- **Auth:** Clerk v7.2.2 (user auth, middleware protection, admin role via publicMetadata) + NextAuth 4.24 (YouTube OAuth for read-only channel stats)
+- **Auth backend:** `@clerk/backend` v3.2.12 for server-side Clerk invitation creation
+- **Database:** Supabase (creators, brands, conversations, messages, creator_waitlist tables — service role key for server ops)
+- **Styling:** Tailwind CSS 3.4 with custom `ink` (dark theme grays) and `accent` (#d4ff3a green) color tokens
+- **Fonts:** Fraunces (display), IBM Plex Sans (body), IBM Plex Mono (mono)
+- **UI:** Framer Motion (transitions), Lucide React (icons)
+- **Email:** nodemailer via SMTP — branded HTML templates for application confirmation, welcome/approval, and admin notification emails
+
+## Project Structure
+
+```
+app/
+  page.tsx              # Homepage (landing)
+  layout.tsx            # Root layout with ClerkProvider + SessionProvider
+  providers.tsx         # Client-side providers wrapper
+  apply/                # Creator application form (6 fields) with YouTube OAuth
+  brands/               # Brand-facing page (includes brand waitlist form)
+    [id]/               # Protected brand profile (creator/brand/admin only — shows business_name/bio/product_url/social_url, NEVER email)
+  creators/             # Public creator network browser (server component fetches live creators from Supabase)
+    [id]/               # Individual creator profile page (basic info / about / price / analytics)
+  dashboard/            # Protected — creator dashboard, brand dashboard, or admin panel (role-based)
+  messages/             # Protected messaging UI (brand + creator). Polling thread view + list + agreement buttons in header (brand → "Offer long/short", creator → "Accept long/short" only after brand has offered)
+  join/                 # Creator waitlist page (legacy)
+  waitlist/             # Non-YouTube creator waitlist (TikTok/Instagram/X/Twitch/Other). Inserts into creator_waitlist table
+  privacy/              # Public Privacy Policy page
+  terms/                # Public Terms of Service page (includes FTC #ad disclosure obligation for creators)
+  sign-in/              # Clerk sign-in
+  sign-in-token/        # Legacy magic-link landing page (fallback only)
+  sign-up/              # Clerk sign-up (invitation-only — redirects to /no-signup without __clerk_ticket)
+  no-signup/            # "Sign-up disabled" page
+  api/
+    apply/              # POST creator application (inserts row + saves YouTube tokens + syncs stats)
+      save-youtube-tokens/ # Saves NextAuth YouTube tokens to creator row (used for re-sync)
+      sync-youtube/     # Fetches YouTube Data API + Analytics API stats, returns channel info
+    auth/[...nextauth]/ # NextAuth Google OAuth handler
+    admin/              # approve, reject, unreject, unpublish, toggle-visibility (creators); verify, reject-brand, unreject-brand (brands); cancel-agreement (agreements)
+    brands/apply/       # POST brand application (inserts brand row + emails support@inlookdeals.com)
+    brand/              # link-account, update-bio endpoints
+    creator/            # link-account, publish, update-profile, refresh-stats endpoints
+    messages/           # start (brand-only, idempotent), send (inserts + fires first-msg/first-reply email), list, [id] (thread + agreement flags), [id]/agree (flip caller's agreement flag + email counterparty)
+    waitlist/           # POST — public, inserts into creator_waitlist
+components/             # Shared UI: nav, footer, logo, creator-card, verified-badge, message-button, messages-preview, chat-avatar
+lib/
+  supabase.ts           # Supabase client + CreatorRow, BrandRow, ConversationRow, MessageRow, ConversationPreview, AgreementEntry types (canonical source for all column types)
+  auth-options.ts       # NextAuth config (shared by API routes — extracted because App Router forbids extra exports from route files)
+  email.ts              # Email templates: sendApplicationConfirmation, sendWelcomeEmail, sendBrandWelcomeEmail, sendAdminNotification, sendBrandApplicationConfirmation, sendBrandApplicationNotification, sendCreatorNewMessageEmail, sendBrandMessageReplyEmail, sendCreatorAgreementEmail, sendBrandAgreementEmail
+types/
+  next-auth.d.ts        # Session type augmentation (accessToken, refreshToken)
+```
+
+## Flows
+
+### 1. Creator Application Flow
+
+1. Creator visits `/apply` — sees 6-field form (name, email, platform, niche, channel URL, follower range) + "Connect YouTube Account" button
+2. Creator fills in fields, clicks "Connect YouTube Account"
+3. Form data saved to `sessionStorage` under key `"inlook-apply-draft"` before OAuth redirect
+4. NextAuth Google OAuth (`youtube.readonly` + `yt-analytics.readonly` scopes) → redirect to Google → redirect back to `/apply`
+5. On mount, form fields restored from `sessionStorage` — data persists across the OAuth round-trip
+6. YouTube sync fires automatically once `connected === true` AND `form.email` is populated:
+   - `POST /api/apply/save-youtube-tokens` — saves access/refresh tokens to Supabase creator row
+   - `POST /api/apply/sync-youtube` — calls YouTube Data API + Analytics API, saves stats to Supabase, returns channel info (name, profile picture, subscriber count) to client
+7. Profile picture + subscriber count shown in the YouTube Connect card on the form
+8. Creator clicks "Submit application" → `POST /api/apply`:
+   - Inserts creator row to Supabase (`approved: false`, `published: false`)
+   - Runs YouTube Data + Analytics API fetch inline and saves all stats
+   - Sends application confirmation email to creator (`sendApplicationConfirmation`)
+   - Sends admin notification email to `support@inlookdeals.com` (`sendAdminNotification`)
+9. Success message: "Application received"
+
+**Important:** YouTube tokens and stats are saved inside `POST /api/apply` (not before), because the creator row must exist first. The sync-youtube call in step 6 also saves stats, but the apply route re-fetches to ensure the data is current at submission time.
+
+### 2. Admin Approval Flow
+
+1. Admin visits `/dashboard` — server component checks `user.publicMetadata.role === "admin"`, renders admin panel
+2. Admin panel has a top-level section toggle: **Creators** / **Brands** / **Agreements** (see Flow 7). Creators and Brands sections each have three tabs — Pending, Approved/Verified, Rejected — all with optimistic UI updates
+3. **Creators section** — admin clicks "Approve" on a pending creator → client optimistically moves card to Approved tab. `POST /api/admin/approve` fires:
+   - Sets `approved: true` in Supabase
+   - Fetches creator email and name
+   - **Clerk invitation** created via `clerk.invitations.createInvitation()` with `notify: false` (Clerk does NOT send its own email), `redirectUrl: /dashboard`, and `publicMetadata: { role: "creator" }`
+   - **Welcome email** sent separately via `sendWelcomeEmail()` with the invitation URL as the button href
+   - Invitation and email are in **separate try/catch blocks** — if the Clerk invitation fails (duplicate, existing user, etc.), the welcome email still sends with a fallback link to `/sign-in`
+4. **Brands section** — admin clicks "Verify" on a pending brand → `POST /api/admin/verify` fires, mirroring the creator approve flow exactly except:
+   - Sets `verified: true` on the `brands` row (field is `verified`, not `approved`)
+   - Clerk invitation uses `publicMetadata: { role: "brand" }`
+   - Welcome email uses `sendBrandWelcomeEmail()`
+5. Approved creators and verified brands have **no "Remove" action** in the admin UI — those lists are read-only except for the Rejected tab's "Move to Pending" affordance (backed by `/api/admin/unreject` and `/api/admin/unreject-brand`).
+
+### 3. Creator Sign-In / Account Setup Flow
+
+1. Creator receives welcome email with "Set up my account" button linking to Clerk invitation URL
+2. Clerk redirects to `/sign-up?__clerk_ticket=...`
+3. Sign-up page checks for `__clerk_ticket` param — if present, renders Clerk `<SignUp />` component; if absent, redirects to `/no-signup` (blocks random sign-ups)
+4. Creator sets their password via Clerk's sign-up form
+5. `publicMetadata: { role: "creator" }` from the invitation is automatically applied to the new Clerk user
+6. After sign-up, redirected to `/dashboard` (via invitation `redirectUrl` and `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard`)
+7. Dashboard client calls `POST /api/creator/link-account` on first load — matches creator by email, saves `clerk_user_id` to Supabase (only sets it if currently null)
+
+### 4. Creator Dashboard Flow
+
+1. Creator signs in → `/dashboard` server component fetches creator row by `clerk_user_id` (and falls back to linking by email if the row has no `clerk_user_id` yet — first load after sign-up). Same fallback also syncs the creator's `full_name` back to Clerk as firstName/lastName.
+2. **Draft state** (not yet published):
+   - YouTube verified stats displayed (subscribers, engagement rate, avg view %, sub growth, total videos, days on Inlook, deals completed). "Refresh" button re-syncs via `POST /api/creator/refresh-stats`.
+   - Profile setup form: social links (TikTok, Instagram, X URLs), bio for brands (300 char max), pricing (long-form and short-form video rates), **Post Publicly toggle** (see below).
+   - Go-live checklist: YouTube connected, bio written (min 50 chars), long video rate set, short video rate set
+   - "Go Live" button → `POST /api/creator/publish` sets `published: true`
+3. **Live state** (published):
+   - Editable bio + Post Publicly toggle (both live-editable via `POST /api/creator/update-profile`)
+   - Stats display, pricing display, social links display
+   - Profile visible on `/creators` network page and `/creators/[id]` profile page
+
+### 4b. Brand Application / Sign-In / Dashboard Flow
+
+1. Brand fills out the `/brands` waitlist form (business name, email, product link, optional social URL) → `POST /api/brands/apply`:
+   - Inserts a row into the `brands` table (`verified: false`, `rejected: false`)
+   - Sends brand application confirmation email to the applicant via `sendBrandApplicationConfirmation`
+   - Sends admin notification email to `support@inlookdeals.com` via `sendBrandApplicationNotification`
+2. Admin verifies the brand via the admin panel's Brands section (see Flow 2).
+3. Brand receives welcome email → Clerk invitation flow (identical to creator) with `publicMetadata: { role: "brand" }` → lands on `/dashboard`
+4. `/dashboard` server component: when `role === "brand"`, fetches brand row by `clerk_user_id`, with an email-based fallback that sets `clerk_user_id` on first sign-in (same pattern as creators). Same fallback also syncs the brand's `business_name` back to Clerk as `firstName`.
+5. Brand dashboard (`brand-dashboard-client.tsx`) shows business name, email, product link, and social media URL (read-only, "Contact support to update" on product link + social URL). It also has an editable **About** section backed by `brands.bio`, saved via `POST /api/brand/update-bio` (max 500 chars). The bio is optional — it does not gate anything on the brand. Includes a "Browse the creator network" link to `/creators`.
+
+### 5. Creator Network (`/creators`) + Profile (`/creators/[id]`)
+
+- `/creators` is a **server component** that fetches from Supabase where `approved = true AND published = true`. No placeholder data.
+- When no creators are live: renders "Inlook is still in beta testing. Creators coming soon..."
+- **Role-based data gating**: before sending data to the client, the server checks whether the viewer's role is `"brand"` or `"admin"` (both get full access). Everyone else gets a `PublicCreator` shape with `avg_view_rate` / `avg_engagement_rate` stripped to `null`, and (if `post_publicly = true`) `price_long_video` / `price_short_video` stripped to `null`. Stripped fields are never sent to the client, so inspect-element can't unblur them.
+- Card layout (sections separated by dividers):
+  1. Profile picture + name + niche chip (top-right); then followers + social icons row (YouTube always, plus TikTok/Instagram/X if linked — each opens the URL in a new tab).
+  2. Analytics: Avg. View %, Avg. Engagement Rate. Blurred with tooltip "You must be signed in as a brand to view this data." when not a brand.
+  3. Price section: centered "Price" label with Long/Short columns. Blurred with tooltip "The Creator requires brands to be signed in to view this data." when `post_publicly = true` and viewer is not a brand.
+  4. "View profile" link → `/creators/[id]`.
+- `/creators/[id]` renders four sections: Basic Information (pic + name + niche + followers + social icons), About (bio), Price (same blur rules), Analytics (same blur rules, plus extra stats only shown to brands).
+- Filters: Niche (matches /apply options exactly), Platform (YouTube/TikTok/Instagram/X — platform filter checks which URLs the creator has linked), Followers (Under 10K, 10K–50K, 50K–100K, 100K–250K, 250K+). No Price filter.
+
+### 5b. Admin visibility override (`admin_hidden`)
+
+- Column: `admin_hidden boolean default false` on `creators`.
+- Admin panel's Approved tab shows a visibility switch per row. Flipping it OFF sets `admin_hidden = true` via `POST /api/admin/toggle-visibility`, which immediately removes the creator from `/creators` and `/creators/[id]` (both queries filter `admin_hidden = false`).
+- Live rows in the admin panel (approved + published + not hidden) also show a "View profile" button linking to `/creators/[id]` in a new tab.
+- When `admin_hidden = true`, the creator's dashboard replaces the green "Live on Network" pill with a yellow "Not Live" pill; hover shows "Contact support for further help". The creator cannot unhide themselves — this is an admin-only override.
+- The "Live on Network" stat card in the admin panel counts only creators that are `published = true AND admin_hidden = false`.
+
+### 7. Messaging & Agreements
+
+**Conversations:** Only brands can start a conversation via `POST /api/messages/start` — idempotent upsert on `(brand_id, creator_id)`, so a brand clicking "Message" on the same creator twice returns the existing conversation. Creators never start conversations.
+
+**Message buttons:** `components/message-button.tsx` renders on the creator card (`/creators` network) and the individual creator profile (`/creators/[id]`) under the Price section. If the viewer is not a signed-in brand, the button is disabled with tooltip "Sign in as a brand to message". Hidden entirely when `isSelf`.
+
+**Sending messages:** Both brand and creator send via `POST /api/messages/send`. Client polls `GET /api/messages/[id]` every 5s (`POLL_MS`). Send route auth checks that the caller is a participant (derives brand_id/creator_id from `clerk_user_id`, never trusts request body). Max message length: 2000 chars. Conversation row updates `last_message_at` + `last_message_preview` (200 char truncate).
+
+**First-message email gate:** After a successful insert, the send route runs `COUNT(messages WHERE conversation_id=X AND sender_role=Y)`. If `count === 1`, it fires the one-time email for that (conversation, sender_role) pair. Scoped per conversation, not per user — a *different* brand messaging the *same* creator triggers a new "A new brand messaged you" email; a *different* creator replying triggers a new "[Creator] replied to your message" email.
+
+**Dashboard previews:** Both creator and brand dashboards embed `components/messages-preview.tsx`, which shows up to 5 conversations (counterparty name + last message, 1-line truncate). Clicks route to `/messages?thread=<id>`. Takes `counterpartyKind: "brand" | "creator"` so the avatar renders correctly.
+
+**ChatAvatar (shared):** `components/chat-avatar.tsx` renders both conversation-list and thread avatars. `kind="brand"` always renders the Lucide `User` icon in a bordered circle (matches the Dev Patel example on the homepage — brands intentionally have no photo). `kind="creator"` renders the YouTube profile image, falling back to an initials gradient.
+
+**View profile button:** Thread header has a "View profile" link. Brand viewers → `/network/[creatorId]`. Creator viewers → `/brands/[brandId]` (protected page that displays business name, bio, product/social URLs but **never** the brand's email).
+
+**Agreement buttons (offer/accept asymmetry):** Brands always see both buttons labeled "Offer long" and "Offer short". Creators only see "Accept long" when `brand_agreed_long === true`, and "Accept short" only when `brand_agreed_short === true` — i.e., the creator can only accept a format the brand has already offered. Once the caller's own flag flips to true, the button becomes a disabled "Offered · Long/Short" pill (brand) or "Agreed · Long/Short" pill (creator). Click flow: click → inline `[Confirm] [Cancel]` → POST `/api/messages/[id]/agree` with `{ format }`. Each side has their own 2 flags (4 total per conversation: `brand_agreed_long`, `brand_agreed_short`, `creator_agreed_long`, `creator_agreed_short`). Flag is permanent from the user side; only admins can revert.
+
+**Agreement email:** On the `false → true` transition, the agree route emails the counterparty. Brand agrees → `sendCreatorAgreementEmail` (subject: "[Brand Name] agreed to create a [long/short]"). Creator agrees → `sendBrandAgreementEmail` (subject: "[Creator Name] agreed to create a [long/short]"). Re-POSTing when already agreed returns `{ ok: true, alreadyAgreed: true }` and sends no duplicate email.
+
+**Admin Agreements subpage:** Third section in the admin panel. Lists one row per `true` flag across all conversations, sorted newest-first, showing: brand name, creator name, agreed-at timestamp, "Brand agreed"/"Creator agreed" pill, "Long"/"Short" pill, and a **Cancel agreement** button with inline confirm/cancel flow. Confirm → `POST /api/admin/cancel-agreement` with `{ conversationId, who, format }` → flag flips to false, timestamp cleared. No email fires on cancel.
+
+### 6. Post Publicly toggle
+
+- Column: `post_publicly boolean default false` on `creators`.
+- Creator controls whether their prices are visible to non-brand visitors. When `true`: prices are blurred on `/creators` and `/creators/[id]`. When `false`: prices are visible to all.
+- The toggle is editable in both draft and live dashboard states. In live state it writes immediately via `POST /api/creator/update-profile`.
+
+### 5. Emails
+
+All branded dark theme with `#d4ff3a` accent:
+
+1. **Application confirmation** (`sendApplicationConfirmation`) — sent to creator immediately after applying. Subject: "Thanks for applying to Inlook"
+2. **Welcome/approval** (`sendWelcomeEmail`) — sent to creator when admin approves. Contains "Set up my account" button with Clerk invitation URL. Subject: "Welcome to Inlook!"
+3. **Admin notification** (`sendAdminNotification`) — sent to `support@inlookdeals.com` when a creator applies. Contains: name, email, platform, channel URL, niche, follower range, YouTube account info
+4. **Brand application notification** (`sendBrandApplicationNotification`) — sent to `support@inlookdeals.com` when a brand submits the `/brands` form. Subject: "New Brand Application". Contains: business name, business email, product link, optional social URL. Triggered by `POST /api/brands/apply`.
+5. **Brand application confirmation** (`sendBrandApplicationConfirmation`) — sent to brand immediately after applying. Subject: "Your Inlook application has been received". Explains that the Inlook team will verify ownership via the brand's public contact channel within ~24 hours.
+6. **Brand welcome/verification** (`sendBrandWelcomeEmail`) — sent to brand when admin verifies. Contains "Set up my account" button with Clerk invitation URL. Subject: "Welcome to Inlook!"
+7. **Creator new message** (`sendCreatorNewMessageEmail`) — sent to a creator the first time a given brand messages them in a conversation. Subject: "A new brand messaged you". Gated by `COUNT(messages WHERE conversation_id=X AND sender_role='brand') === 1`.
+8. **Brand message reply** (`sendBrandMessageReplyEmail`) — sent to a brand the first time a given creator replies in a conversation. Subject: "[Creator Name] replied to your message". Gated by `COUNT(messages WHERE conversation_id=X AND sender_role='creator') === 1`.
+9. **Creator agreement notification** (`sendCreatorAgreementEmail`) — sent to creator when a brand flips their agreement flag for this conversation. Subject: "[Brand Name] agreed to create a [long/short]". Fires once per flag (re-POSTs short-circuit before emailing).
+10. **Brand agreement notification** (`sendBrandAgreementEmail`) — sent to brand when a creator flips their agreement flag. Subject: "[Creator Name] agreed to create a [long/short]". Same once-per-flag gate.
+
+## YouTube Data
+
+### What's pulled from YouTube APIs
+
+**YouTube Data API v3** (`channels?part=statistics,snippet,brandingSettings`):
+- `youtube_channel_id`, `display_name`, `username`, `profile_picture_url` (medium quality 240x240, falls back to default 88x88), `channel_bio`, `subscriber_count`, `total_channel_views`, `total_videos`
+
+**YouTube Analytics API** (30-day window, `metrics=views,likes,comments,shares,averageViewPercentage,subscribersGained,subscribersLost`):
+- `avg_engagement_rate`: `(likes + comments + shares) / views * 100`
+- `avg_view_rate`: direct from API
+- `subscriber_growth_30d`: `(subscribersGained - subscribersLost) / subscriberCount * 100`
+
+**Not currently available from YouTube API:**
+- "Saves" — not a YouTube metric. Engagement rate uses likes + comments + shares only.
+
+### Stats refresh
+
+- **Automatic sync**: runs at application time (inside `POST /api/apply`) and during `/apply` when the creator connects YouTube (`POST /api/apply/sync-youtube`).
+- **Manual re-sync**: creators can click "Refresh" on their dashboard, which calls `POST /api/creator/refresh-stats`. That route uses the stored `youtube_refresh_token` to exchange for a fresh access token via `https://oauth2.googleapis.com/token`, then re-pulls Data + Analytics APIs and updates the row. Creators do NOT need a live NextAuth session for this — the refresh is server-to-server via the stored refresh token.
+- `stats_last_updated` column tracks when stats were last pulled.
+- When displaying, distinguish `null` (never synced) from `0` (synced but channel has 0 views in window): use `!= null` checks, not truthy checks. Zero is a valid value and must render as `0.0%`.
+
+## Key Patterns
+
+- `/dashboard` serves creators, brands, and admins — server component branches on `user.publicMetadata.role`: `admin` → `AdminClient`, `brand` → `BrandDashboardClient`, default → creator `DashboardClient`
+- Two separate auth systems coexist: **Clerk** (user accounts, invitations, role management — roles: `admin` / `creator` / `brand`) and **NextAuth** (YouTube OAuth only, for read-only channel stats)
+- `sessionStorage` persists form data across OAuth redirect on `/apply`
+- Clerk middleware protects all routes except public pages and API endpoints listed in `middleware.ts`
+- Public routes: `/`, `/apply`, `/creators(.*)` (network list AND individual profile pages), `/brands`, `/join`, `/waitlist`, `/privacy`, `/terms`, `/sign-in(.*)`, `/sign-up(.*)`, `/sign-in-token(.*)`, `/no-signup`, `/api/apply(.*)`, `/api/auth(.*)`, `/api/brands/apply`, `/api/waitlist`
+- **Days on Inlook** counter starts at 1 (first day) using `Math.floor(diff / dayMs) + 1`
+
+## Validation
+
+- Social URL fields (TikTok, Instagram, X) are validated both client-side and server-side:
+  - TikTok URL must contain `tiktok.com`
+  - Instagram URL must contain `instagram.com`
+  - X URL must contain `x.com` or `twitter.com`
+- Save button is disabled when any URL is invalid; server returns 400 for invalid URLs
+
+## Commands
+
+```bash
+npm run dev    # Start dev server
+npm run build  # Production build (use to verify no type errors)
+npm run lint   # ESLint
+```
+
+## Environment Variables
+
+Required: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`.
+
+Clerk env: `NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in`, `NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up`, `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard`, `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard`.
+
+`NEXTAUTH_URL` is also used as the base URL for welcome email links (falls back to `https://inlookdeals.com`).
+
+## Database
+
+Five tables in Supabase: `creators`, `brands`, `conversations`, `messages`, `creator_waitlist`. Canonical type definitions (`CreatorRow`, `BrandRow`, `ConversationRow`, `MessageRow`, plus the `ConversationPreview` and `AgreementEntry` view types) live in `lib/supabase.ts` — all components reference these types. When changing columns, update the type AND all components that reference the changed fields.
+
+### `creators` table
+
+Key columns: `youtube_access_token`, `youtube_refresh_token`, `connected_at`, `subscriber_count`, `avg_view_rate`, `avg_engagement_rate`, `subscriber_growth_30d`, `total_channel_views`, `total_videos`, `profile_picture_url`, `display_name`, `username`, `channel_bio`, `youtube_channel_id`, `clerk_user_id`, `approved`, `rejected`, `published`, `price_long_video`, `price_short_video`, `tiktok_url`, `tiktok_follower_count`, `instagram_url`, `instagram_follower_count`, `deals_completed`, `stats_last_updated`, `post_publicly`, `admin_hidden`, `show_deal_stats`.
+
+### `brands` table
+
+Columns: `id` (uuid pk), `business_name` (text), `email` (text, unique), `product_url` (text), `social_url` (text, nullable), `verified` (boolean, default false), `rejected` (boolean, default false), `clerk_user_id` (text, nullable), `created_at` (timestamptz), `bio` (text, nullable — editable from brand dashboard, displayed read-only in the admin panel's Brands section).
+
+Migration:
+```sql
+CREATE TABLE IF NOT EXISTS brands (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_name text NOT NULL,
+  email text NOT NULL UNIQUE,
+  product_url text NOT NULL,
+  social_url text,
+  verified boolean DEFAULT false,
+  rejected boolean DEFAULT false,
+  clerk_user_id text,
+  created_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS brands_clerk_user_id_idx ON brands(clerk_user_id);
+CREATE INDEX IF NOT EXISTS brands_email_idx ON brands(email);
+ALTER TABLE brands ADD COLUMN IF NOT EXISTS bio text;
+```
+
+**Removed columns** (drop if still in Supabase):
+```sql
+ALTER TABLE creators DROP COLUMN IF EXISTS price_per_post;
+ALTER TABLE creators DROP COLUMN IF EXISTS organic_engagement_rate;
+ALTER TABLE creators DROP COLUMN IF EXISTS sponsored_engagement_rate;
+ALTER TABLE creators DROP COLUMN IF EXISTS avg_views_30d;
+ALTER TABLE creators DROP COLUMN IF EXISTS avg_click_through_rate;
+```
+
+### `conversations` table
+
+Columns: `id` (uuid pk), `brand_id` (fk → brands.id), `creator_id` (fk → creators.id), `created_at` (timestamptz), `last_message_at` (timestamptz, nullable), `last_message_preview` (text, nullable — truncated to 200 chars), plus 8 agreement columns:
+- `brand_agreed_long` / `brand_agreed_long_at`
+- `brand_agreed_short` / `brand_agreed_short_at`
+- `creator_agreed_long` / `creator_agreed_long_at`
+- `creator_agreed_short` / `creator_agreed_short_at`
+
+Booleans default `false`; timestamps are nullable. Unique constraint on `(brand_id, creator_id)` — used by `/api/messages/start` for idempotent upsert.
+
+### `messages` table
+
+Columns: `id` (uuid pk), `conversation_id` (fk → conversations.id), `sender_role` (text: 'brand' or 'creator'), `body` (text, ≤ 2000 chars), `created_at` (timestamptz), `read_at` (timestamptz, nullable — reserved for future read-receipt work, not currently written).
+
+### Messaging + agreements migration
+
+```sql
+CREATE TABLE IF NOT EXISTS conversations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  brand_id uuid NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
+  creator_id uuid NOT NULL REFERENCES creators(id) ON DELETE CASCADE,
+  created_at timestamptz DEFAULT now(),
+  last_message_at timestamptz,
+  last_message_preview text,
+  UNIQUE (brand_id, creator_id)
+);
+CREATE INDEX IF NOT EXISTS conversations_brand_idx ON conversations(brand_id);
+CREATE INDEX IF NOT EXISTS conversations_creator_idx ON conversations(creator_id);
+
+CREATE TABLE IF NOT EXISTS messages (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id uuid NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+  sender_role text NOT NULL CHECK (sender_role IN ('brand','creator')),
+  body text NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  read_at timestamptz
+);
+CREATE INDEX IF NOT EXISTS messages_conversation_idx ON messages(conversation_id, created_at);
+
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS brand_agreed_long boolean NOT NULL DEFAULT false;
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS brand_agreed_long_at timestamptz;
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS brand_agreed_short boolean NOT NULL DEFAULT false;
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS brand_agreed_short_at timestamptz;
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS creator_agreed_long boolean NOT NULL DEFAULT false;
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS creator_agreed_long_at timestamptz;
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS creator_agreed_short boolean NOT NULL DEFAULT false;
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS creator_agreed_short_at timestamptz;
+```
+
+### `creator_waitlist` table
+
+Non-YouTube creator waitlist — people who want to join Inlook but aren't primarily on YouTube (Inlook launches YouTube-only). Populated by `POST /api/waitlist` from `/waitlist` page. No auth; public write.
+
+Columns: `id` (uuid pk), `name` (text), `email` (text, unique), `platform` (text: TikTok/Instagram/X/Twitch/Other), `handle` (text — profile URL or handle), `follower_range` (text), `niche` (text, nullable), `created_at` (timestamptz).
+
+Migration:
+```sql
+CREATE TABLE IF NOT EXISTS creator_waitlist (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  email text NOT NULL UNIQUE,
+  platform text NOT NULL,
+  handle text NOT NULL,
+  follower_range text NOT NULL,
+  niche text,
+  created_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS creator_waitlist_email_idx ON creator_waitlist(email);
+```
+
+### Older migrations (run in Supabase SQL Editor if not already applied)
+
+```sql
+ALTER TABLE creators ADD COLUMN IF NOT EXISTS rejected boolean DEFAULT false;
+ALTER TABLE creators RENAME COLUMN tiktok_handle TO tiktok_url;
+ALTER TABLE creators RENAME COLUMN instagram_handle TO instagram_url;
+ALTER TABLE creators RENAME COLUMN x_handle TO x_url;
+ALTER TABLE creators ADD COLUMN IF NOT EXISTS price_long_video decimal;
+ALTER TABLE creators ADD COLUMN IF NOT EXISTS price_short_video decimal;
+ALTER TABLE creators ADD COLUMN IF NOT EXISTS post_publicly boolean DEFAULT false;
+ALTER TABLE creators ADD COLUMN IF NOT EXISTS admin_hidden boolean DEFAULT false;
+```
+
+## Legal / consent
+
+- `/privacy` and `/terms` are static pages in `app/privacy/page.tsx` and `app/terms/page.tsx`. Both are public routes. Footer "Company" column links to both.
+- Clickwrap-style consent is enforced at three entry points: creator apply (`Connect YouTube Account` button, in `app/apply/apply-client.tsx`), brand apply (`Request access` button, in `components/brand-application-form.tsx`), and waitlist (`Join the waitlist` button, in `app/waitlist/waitlist-client.tsx`). Each has a short line beneath the CTA: "By [action], you agree to our Terms of Service and Privacy Policy."
+- TOS Section 5 requires creators to disclose sponsored content (e.g., `#ad`) per FTC Endorsement Guides. Creators indemnify Inlook for non-disclosure claims (Section 14).
+- Both policies contain `[⚠️ LEGAL REVIEW REQUIRED]` markers that must be addressed by counsel before public launch — notably governing-law/venue, fee/refund language, jurisdiction-specific rights (GDPR/CCPA), and cross-border transfer mechanisms.
+- Footer copyright is hardcoded to "© 2026 Inlook. All rights reserved." per founder preference.
+
+## Style Conventions
+
+- Color tokens: `ink-50` (lightest) through `ink-950` (darkest) for grays; `accent` (#d4ff3a) / `accent-dim` / `accent-deep` for green
+- Font classes: `font-display` (headings), `font-sans` (body), `font-mono` (labels/badges)
+- Labels use: `font-mono text-[11px] uppercase tracking-[0.14em] text-ink-300`
+- Cards use: `rounded-3xl border border-ink-800 bg-ink-900 shadow-card`
+- Buttons use: `btn-primary` class (defined in globals.css)
+- Email templates use branded dark theme with `#d4ff3a` accent color
