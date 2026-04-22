@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/refresh-all-stats",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
