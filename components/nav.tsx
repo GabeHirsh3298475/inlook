@@ -108,9 +108,6 @@ export function Nav() {
               <MobileLink href="/brands" onClick={() => setOpen(false)}>
                 For Brands
               </MobileLink>
-              <MobileLink href="/pricing" onClick={() => setOpen(false)}>
-                Pricing
-              </MobileLink>
               <Show when="signed-in">
                 <MobileLink href="/dashboard" onClick={() => setOpen(false)}>
                   Dashboard
