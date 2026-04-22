@@ -99,11 +99,18 @@ export default function PrivacyPolicyPage() {
                 update this Policy.
               </p>
               <p>
-                <strong>[⚠️ LEGAL REVIEW REQUIRED]</strong> If the Service is
-                ever made available to users in the EU / UK, California, or
-                other regulated jurisdictions, additional disclosures and
-                consent mechanisms (e.g., GDPR lawful basis, CCPA
-                &ldquo;Do Not Sell or Share&rdquo; link) must be added.
+                <strong>Categories of personal information (CCPA).</strong>{" "}
+                In the last 12 months we have collected the following
+                categories of personal information: identifiers (name, email,
+                Clerk user ID, IP address), commercial information
+                (application details, deal history), internet activity
+                (request logs, messages sent within the Service), and
+                professional information (YouTube channel statistics and
+                metadata that the creator has chosen to connect). We do not
+                sell or &ldquo;share&rdquo; personal information as those
+                terms are defined under the California Consumer Privacy Act
+                (CCPA/CPRA). See Section 8 for how California residents may
+                exercise their rights.
               </p>
             </Section>
 
@@ -193,10 +200,11 @@ export default function PrivacyPolicyPage() {
                 that are strictly necessary for you to stay signed in. Google
                 may set cookies during the OAuth flow when you connect your
                 YouTube account. You can clear or block cookies in your
-                browser; doing so may prevent sign-in from working.{" "}
-                <strong>[⚠️ LEGAL REVIEW REQUIRED]</strong> If we later add
-                non-essential cookies (e.g., analytics), we will add a consent
-                banner for EU/UK visitors.
+                browser; doing so may prevent sign-in from working. We do not
+                currently use advertising or third-party analytics cookies. If
+                we add any non-essential cookies in the future, we will update
+                this Policy and, where required by law, present a consent
+                banner before any non-essential cookies are set.
               </p>
             </Section>
 
@@ -221,12 +229,24 @@ export default function PrivacyPolicyPage() {
                 <a href="mailto:support@inlookdeals.com" className="text-accent">
                   support@inlookdeals.com
                 </a>{" "}
-                from the address on file. We will respond within a reasonable
-                time.{" "}
-                <strong>[⚠️ LEGAL REVIEW REQUIRED]</strong> Jurisdiction-specific
-                rights (GDPR access/portability/erasure; CCPA/CPRA rights to
-                know, delete, correct, and opt out of sharing) must be
-                expressly described here once Inlook serves those regions.
+                from the address on file. We will respond within 45 days,
+                extendable once by an additional 45 days where reasonably
+                necessary with notice to you.
+              </p>
+              <p>
+                <strong>California residents (CCPA/CPRA).</strong> You have
+                the right to (i) know what personal information we have
+                collected about you and how we use and share it; (ii) request
+                deletion of your personal information; (iii) request
+                correction of inaccurate personal information; (iv) opt out of
+                the &ldquo;sale&rdquo; or &ldquo;sharing&rdquo; of personal
+                information (we do not sell or share personal information, so
+                there is nothing to opt out of); and (v) not receive
+                discriminatory treatment for exercising any of these rights.
+                To exercise any of these rights, email us from the address on
+                file. We may need to verify your identity before fulfilling a
+                request. An authorized agent may submit a request on your
+                behalf with written proof of authorization.
               </p>
             </Section>
 
@@ -256,12 +276,14 @@ export default function PrivacyPolicyPage() {
 
             <Section title="11. International users">
               <p>
-                <strong>[⚠️ LEGAL REVIEW REQUIRED]</strong> The Service is
-                operated from the United States. If you access it from outside
-                the US, you understand your information will be processed in
-                the US. Cross-border transfer mechanisms (Standard Contractual
-                Clauses, adequacy decisions) must be added before onboarding
-                EU/UK users.
+                The Service is operated from the United States and is
+                currently intended for users located in the United States. If
+                you access the Service from outside the US, you understand
+                that your information will be transferred to, stored in, and
+                processed in the United States, where data-protection laws may
+                differ from those in your jurisdiction. By using the Service
+                from outside the US, you consent to that transfer and
+                processing.
               </p>
             </Section>
 

@@ -362,7 +362,7 @@ export default function TermsOfServicePage() {
                 We may update these Terms from time to time. If we make
                 material changes, we will notify registered users by email
                 and/or by posting a prominent notice on the Service at least
-                30 days before the change takes effect. Your continued use of
+                3 days before the change takes effect. Your continued use of
                 the Service after the effective date means you accept the
                 updated Terms.
               </p>
