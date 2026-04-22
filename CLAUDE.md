@@ -32,6 +32,7 @@ app/
   waitlist/             # Non-YouTube creator waitlist (TikTok/Instagram/X/Twitch/Other). Inserts into creator_waitlist table
   privacy/              # Public Privacy Policy page
   terms/                # Public Terms of Service page (includes FTC #ad disclosure obligation for creators)
+  pricing/              # Public pricing page ($0 for brands / 15% platform fee for creators, Stripe Connect 85/15 split, FAQ)
   sign-in/              # Clerk sign-in
   sign-in-token/        # Legacy magic-link landing page (fallback only)
   sign-up/              # Clerk sign-up (invitation-only — redirects to /no-signup without __clerk_ticket)
@@ -220,7 +221,7 @@ All branded dark theme with `#d4ff3a` accent:
 - Two separate auth systems coexist: **Clerk** (user accounts, invitations, role management — roles: `admin` / `creator` / `brand`) and **NextAuth** (YouTube OAuth only, for read-only channel stats)
 - `sessionStorage` persists form data across OAuth redirect on `/apply`
 - Clerk middleware protects all routes except public pages and API endpoints listed in `middleware.ts`
-- Public routes: `/`, `/apply`, `/creators(.*)` (network list AND individual profile pages), `/brands`, `/join`, `/waitlist`, `/privacy`, `/terms`, `/sign-in(.*)`, `/sign-up(.*)`, `/sign-in-token(.*)`, `/no-signup`, `/api/apply(.*)`, `/api/auth(.*)`, `/api/brands/apply`, `/api/waitlist`
+- Public routes: `/`, `/apply`, `/creators(.*)` (network list AND individual profile pages), `/brands`, `/join`, `/waitlist`, `/privacy`, `/terms`, `/pricing`, `/sign-in(.*)`, `/sign-up(.*)`, `/sign-in-token(.*)`, `/no-signup`, `/api/apply(.*)`, `/api/auth(.*)`, `/api/brands/apply`, `/api/waitlist`
 - **Days on Inlook** counter starts at 1 (first day) using `Math.floor(diff / dayMs) + 1`
 
 ## Validation
@@ -371,7 +372,9 @@ ALTER TABLE creators ADD COLUMN IF NOT EXISTS admin_hidden boolean DEFAULT false
 
 ## Legal / consent
 
-- `/privacy` and `/terms` are static pages in `app/privacy/page.tsx` and `app/terms/page.tsx`. Both are public routes. Footer "Company" column links to both.
+- `/privacy`, `/terms`, and `/pricing` are static pages in `app/privacy/page.tsx`, `app/terms/page.tsx`, and `app/pricing/page.tsx`. All three are public routes. Footer "Company" column links to all three (Pricing between About and Privacy).
+- Pricing page surfaces the commercial model: **$0 for brands / 15% platform fee for creators (Stripe Connect auto-split, 85% creator / 15% Inlook).** Stripe payment-processing fees are absorbed into Inlook's 15% — creators see 85% of gross deal value with no further deductions. `/creators` and `/brands` each surface a condensed pricing block linking to `/pricing`. TOS Section 9 reflects this fee structure and links to the Stripe Connected Account Agreement.
+- Use **"platform fee"**, not "commission" — commission implies agency/talent-manager relationship (triggers CA/NY talent-agency licensing); platform fee is the correct marketplace term and matches Stripe Connect's `application_fee_amount`.
 - Clickwrap-style consent is enforced at three entry points: creator apply (`Connect YouTube Account` button, in `app/apply/apply-client.tsx`), brand apply (`Request access` button, in `components/brand-application-form.tsx`), and waitlist (`Join the waitlist` button, in `app/waitlist/waitlist-client.tsx`). Each has a short line beneath the CTA: "By [action], you agree to our Terms of Service and Privacy Policy."
 - TOS Section 5 requires creators to disclose sponsored content (e.g., `#ad`) per FTC Endorsement Guides. Creators indemnify Inlook for non-disclosure claims (Section 14).
 - Both policies contain `[⚠️ LEGAL REVIEW REQUIRED]` markers that must be addressed by counsel before public launch — notably governing-law/venue, fee/refund language, jurisdiction-specific rights (GDPR/CCPA), and cross-border transfer mechanisms.
