@@ -37,18 +37,18 @@ export function Footer() {
                 href: "mailto:support@inlookdeals.com",
               },
               {
+                label: "Instagram",
+                href: "https://www.instagram.com/tryinlook",
+                external: true,
+              },
+              {
                 label: "TikTok",
-                href: "https://www.tiktok.com/@inlook.startup",
+                href: "https://www.tiktok.com/@tryinlook",
                 external: true,
               },
               {
                 label: "X",
                 href: "https://x.com/inlook_startup",
-                external: true,
-              },
-              {
-                label: "Instagram",
-                href: "https://www.instagram.com/inlook.startup/",
                 external: true,
               },
             ]}
