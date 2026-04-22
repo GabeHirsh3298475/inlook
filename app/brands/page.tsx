@@ -115,9 +115,22 @@ export default function BrandsPage() {
               <p className="eyebrow">What brands get</p>
               <h2 className="mt-4 font-display text-3xl font-normal leading-[1.05] tracking-tight text-ink-50 sm:text-4xl">
                 Everything you{" "}
-                <em className="italic text-accent">actually</em> need. Nothing
-                you don&apos;t.
+                <em className="italic text-accent">actually</em> need.
               </h2>
+              <div className="mt-8 rounded-3xl border border-accent/40 bg-ink-900 p-6 shadow-card sm:p-8">
+                <div className="flex flex-wrap items-baseline gap-3">
+                  <span className="font-display text-5xl font-normal tracking-tight text-ink-50 sm:text-6xl">
+                    $0
+                  </span>
+                  <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-300">
+                    fees &middot; free subscription
+                  </span>
+                </div>
+                <p className="mt-3 font-sans text-sm leading-relaxed text-ink-200">
+                  No subscription, no per-seat fees, no agency markup. You
+                  pay only what you agree to with the creator.
+                </p>
+              </div>
             </div>
             <ul className="grid gap-3">
               {[
