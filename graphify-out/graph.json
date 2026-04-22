@@ -9,7 +9,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/middleware.ts",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_middleware_ts",
-      "community": 31,
+      "community": 33,
       "norm_label": "middleware.ts"
     },
     {
@@ -18,7 +18,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/postcss.config.mjs",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_postcss_config_mjs",
-      "community": 32,
+      "community": 34,
       "norm_label": "postcss.config.mjs"
     },
     {
@@ -27,7 +27,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/next.config.mjs",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_next_config_mjs",
-      "community": 33,
+      "community": 35,
       "norm_label": "next.config.mjs"
     },
     {
@@ -36,7 +36,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/next-env.d.ts",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_next_env_d_ts",
-      "community": 34,
+      "community": 36,
       "norm_label": "next-env.d.ts"
     },
     {
@@ -45,7 +45,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/tailwind.config.ts",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_tailwind_config_ts",
-      "community": 35,
+      "community": 37,
       "norm_label": "tailwind.config.ts"
     },
     {
@@ -54,8 +54,53 @@
       "source_file": "/Users/gabrielhirsh/inlook/types/next-auth.d.ts",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_types_next_auth_d_ts",
-      "community": 36,
+      "community": 38,
       "norm_label": "next-auth.d.ts"
+    },
+    {
+      "label": "robots.ts",
+      "file_type": "code",
+      "source_file": "/Users/gabrielhirsh/inlook/app/robots.ts",
+      "source_location": "L1",
+      "id": "users_gabrielhirsh_inlook_app_robots_ts",
+      "community": 12,
+      "norm_label": "robots.ts"
+    },
+    {
+      "label": "robots()",
+      "file_type": "code",
+      "source_file": "/Users/gabrielhirsh/inlook/app/robots.ts",
+      "source_location": "L3",
+      "id": "robots_robots",
+      "community": 12,
+      "norm_label": "robots()"
+    },
+    {
+      "label": "opengraph-image.tsx",
+      "file_type": "code",
+      "source_file": "/Users/gabrielhirsh/inlook/app/opengraph-image.tsx",
+      "source_location": "L1",
+      "id": "users_gabrielhirsh_inlook_app_opengraph_image_tsx",
+      "community": 39,
+      "norm_label": "opengraph-image.tsx"
+    },
+    {
+      "label": "sitemap.ts",
+      "file_type": "code",
+      "source_file": "/Users/gabrielhirsh/inlook/app/sitemap.ts",
+      "source_location": "L1",
+      "id": "users_gabrielhirsh_inlook_app_sitemap_ts",
+      "community": 13,
+      "norm_label": "sitemap.ts"
+    },
+    {
+      "label": "sitemap()",
+      "file_type": "code",
+      "source_file": "/Users/gabrielhirsh/inlook/app/sitemap.ts",
+      "source_location": "L1",
+      "id": "sitemap_sitemap",
+      "community": 13,
+      "norm_label": "sitemap()"
     },
     {
       "label": "layout.tsx",
@@ -63,16 +108,16 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/layout.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_layout_tsx",
-      "community": 12,
+      "community": 14,
       "norm_label": "layout.tsx"
     },
     {
       "label": "RootLayout()",
       "file_type": "code",
       "source_file": "/Users/gabrielhirsh/inlook/app/layout.tsx",
-      "source_location": "L41",
+      "source_location": "L129",
       "id": "layout_rootlayout",
-      "community": 12,
+      "community": 14,
       "norm_label": "rootlayout()"
     },
     {
@@ -108,7 +153,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/not-found.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_not_found_tsx",
-      "community": 13,
+      "community": 15,
       "norm_label": "not-found.tsx"
     },
     {
@@ -117,7 +162,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/not-found.tsx",
       "source_location": "L4",
       "id": "not_found_notfound",
-      "community": 13,
+      "community": 15,
       "norm_label": "notfound()"
     },
     {
@@ -126,7 +171,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/providers.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_providers_tsx",
-      "community": 14,
+      "community": 16,
       "norm_label": "providers.tsx"
     },
     {
@@ -135,7 +180,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/providers.tsx",
       "source_location": "L6",
       "id": "providers_providers",
-      "community": 14,
+      "community": 16,
       "norm_label": "providers()"
     },
     {
@@ -144,7 +189,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/waitlist/waitlist-client.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_waitlist_waitlist_client_tsx",
-      "community": 15,
+      "community": 17,
       "norm_label": "waitlist-client.tsx"
     },
     {
@@ -153,7 +198,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/waitlist/waitlist-client.tsx",
       "source_location": "L37",
       "id": "waitlist_client_handlesubmit",
-      "community": 15,
+      "community": 17,
       "norm_label": "handlesubmit()"
     },
     {
@@ -162,7 +207,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/waitlist/page.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_waitlist_page_tsx",
-      "community": 16,
+      "community": 18,
       "norm_label": "page.tsx"
     },
     {
@@ -171,7 +216,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/waitlist/page.tsx",
       "source_location": "L8",
       "id": "page_waitlistpage",
-      "community": 16,
+      "community": 18,
       "norm_label": "waitlistpage()"
     },
     {
@@ -180,7 +225,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/apply/page.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_apply_page_tsx",
-      "community": 17,
+      "community": 19,
       "norm_label": "page.tsx"
     },
     {
@@ -189,7 +234,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/apply/page.tsx",
       "source_location": "L11",
       "id": "page_applypage",
-      "community": 17,
+      "community": 19,
       "norm_label": "applypage()"
     },
     {
@@ -243,7 +288,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/sign-up/[[...sign-up]]/page.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_sign_up_sign_up_page_tsx",
-      "community": 18,
+      "community": 20,
       "norm_label": "page.tsx"
     },
     {
@@ -252,7 +297,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/sign-up/[[...sign-up]]/page.tsx",
       "source_location": "L9",
       "id": "page_signuppage",
-      "community": 18,
+      "community": 20,
       "norm_label": "signuppage()"
     },
     {
@@ -288,7 +333,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/messages/page.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_messages_page_tsx",
-      "community": 19,
+      "community": 21,
       "norm_label": "page.tsx"
     },
     {
@@ -297,7 +342,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/messages/page.tsx",
       "source_location": "L12",
       "id": "page_messagespage",
-      "community": 19,
+      "community": 21,
       "norm_label": "messagespage()"
     },
     {
@@ -306,7 +351,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/privacy/page.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_privacy_page_tsx",
-      "community": 37,
+      "community": 40,
       "norm_label": "page.tsx"
     },
     {
@@ -315,7 +360,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/brands/page.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_brands_page_tsx",
-      "community": 38,
+      "community": 41,
       "norm_label": "page.tsx"
     },
     {
@@ -342,7 +387,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/network/creators-client.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_network_creators_client_tsx",
-      "community": 39,
+      "community": 42,
       "norm_label": "creators-client.tsx"
     },
     {
@@ -387,16 +432,16 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/terms/page.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_terms_page_tsx",
-      "community": 20,
+      "community": 22,
       "norm_label": "page.tsx"
     },
     {
       "label": "TermsOfServicePage()",
       "file_type": "code",
       "source_file": "/Users/gabrielhirsh/inlook/app/terms/page.tsx",
-      "source_location": "L8",
+      "source_location": "L11",
       "id": "page_termsofservicepage",
-      "community": 20,
+      "community": 22,
       "norm_label": "termsofservicepage()"
     },
     {
@@ -412,7 +457,7 @@
       "label": "handleApprove()",
       "file_type": "code",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
-      "source_location": "L58",
+      "source_location": "L61",
       "id": "admin_client_handleapprove",
       "community": 3,
       "norm_label": "handleapprove()"
@@ -421,7 +466,7 @@
       "label": "handleReject()",
       "file_type": "code",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
-      "source_location": "L71",
+      "source_location": "L74",
       "id": "admin_client_handlereject",
       "community": 3,
       "norm_label": "handlereject()"
@@ -430,7 +475,7 @@
       "label": "handleToggleVisibility()",
       "file_type": "code",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
-      "source_location": "L84",
+      "source_location": "L87",
       "id": "admin_client_handletogglevisibility",
       "community": 3,
       "norm_label": "handletogglevisibility()"
@@ -439,7 +484,7 @@
       "label": "handleUnreject()",
       "file_type": "code",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
-      "source_location": "L95",
+      "source_location": "L98",
       "id": "admin_client_handleunreject",
       "community": 3,
       "norm_label": "handleunreject()"
@@ -448,7 +493,7 @@
       "label": "handleVerifyBrand()",
       "file_type": "code",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
-      "source_location": "L108",
+      "source_location": "L111",
       "id": "admin_client_handleverifybrand",
       "community": 3,
       "norm_label": "handleverifybrand()"
@@ -457,7 +502,7 @@
       "label": "handleRejectBrand()",
       "file_type": "code",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
-      "source_location": "L121",
+      "source_location": "L124",
       "id": "admin_client_handlerejectbrand",
       "community": 3,
       "norm_label": "handlerejectbrand()"
@@ -466,19 +511,55 @@
       "label": "handleUnrejectBrand()",
       "file_type": "code",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
-      "source_location": "L134",
+      "source_location": "L137",
       "id": "admin_client_handleunrejectbrand",
       "community": 3,
       "norm_label": "handleunrejectbrand()"
     },
     {
-      "label": "handleCancelAgreement()",
+      "label": "handleMarkPaymentLinkSent()",
       "file_type": "code",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
-      "source_location": "L147",
-      "id": "admin_client_handlecancelagreement",
+      "source_location": "L150",
+      "id": "admin_client_handlemarkpaymentlinksent",
       "community": 3,
-      "norm_label": "handlecancelagreement()"
+      "norm_label": "handlemarkpaymentlinksent()"
+    },
+    {
+      "label": "handleMarkPaid()",
+      "file_type": "code",
+      "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
+      "source_location": "L184",
+      "id": "admin_client_handlemarkpaid",
+      "community": 3,
+      "norm_label": "handlemarkpaid()"
+    },
+    {
+      "label": "pad()",
+      "file_type": "code",
+      "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
+      "source_location": "L1054",
+      "id": "admin_client_pad",
+      "community": 3,
+      "norm_label": "pad()"
+    },
+    {
+      "label": "wrap()",
+      "file_type": "code",
+      "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
+      "source_location": "L1110",
+      "id": "admin_client_wrap",
+      "community": 3,
+      "norm_label": "wrap()"
+    },
+    {
+      "label": "handleSend()",
+      "file_type": "code",
+      "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
+      "source_location": "L1280",
+      "id": "admin_client_handlesend",
+      "community": 3,
+      "norm_label": "handlesend()"
     },
     {
       "label": "brand-dashboard-client.tsx",
@@ -486,7 +567,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/brand-dashboard-client.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_dashboard_brand_dashboard_client_tsx",
-      "community": 21,
+      "community": 23,
       "norm_label": "brand-dashboard-client.tsx"
     },
     {
@@ -495,7 +576,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/brand-dashboard-client.tsx",
       "source_location": "L36",
       "id": "brand_dashboard_client_onsavebio",
-      "community": 21,
+      "community": 23,
       "norm_label": "onsavebio()"
     },
     {
@@ -565,7 +646,7 @@
       "label": "catch()",
       "file_type": "code",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/page.tsx",
-      "source_location": "L286",
+      "source_location": "L288",
       "id": "page_catch",
       "community": 1,
       "norm_label": "catch()"
@@ -576,7 +657,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/no-signup/page.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_no_signup_page_tsx",
-      "community": 22,
+      "community": 24,
       "norm_label": "page.tsx"
     },
     {
@@ -585,7 +666,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/no-signup/page.tsx",
       "source_location": "L10",
       "id": "page_nosignuppage",
-      "community": 22,
+      "community": 24,
       "norm_label": "nosignuppage()"
     },
     {
@@ -594,7 +675,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/creators/page.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_creators_page_tsx",
-      "community": 40,
+      "community": 43,
       "norm_label": "page.tsx"
     },
     {
@@ -738,7 +819,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/api/auth/[...nextauth]/route.ts",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_api_auth_nextauth_route_ts",
-      "community": 41,
+      "community": 44,
       "norm_label": "route.ts"
     },
     {
@@ -765,6 +846,15 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/api/brand/link-account/route.ts",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_api_brand_link_account_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "/Users/gabrielhirsh/inlook/app/api/admin/mark-paid/route.ts",
+      "source_location": "L1",
+      "id": "users_gabrielhirsh_inlook_app_api_admin_mark_paid_route_ts",
       "community": 0,
       "norm_label": "route.ts"
     },
@@ -798,15 +888,6 @@
     {
       "label": "route.ts",
       "file_type": "code",
-      "source_file": "/Users/gabrielhirsh/inlook/app/api/admin/cancel-agreement/route.ts",
-      "source_location": "L1",
-      "id": "users_gabrielhirsh_inlook_app_api_admin_cancel_agreement_route_ts",
-      "community": 0,
-      "norm_label": "route.ts"
-    },
-    {
-      "label": "route.ts",
-      "file_type": "code",
       "source_file": "/Users/gabrielhirsh/inlook/app/api/admin/verify/route.ts",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_api_admin_verify_route_ts",
@@ -828,6 +909,24 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/api/admin/approve/route.ts",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_api_admin_approve_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "/Users/gabrielhirsh/inlook/app/api/admin/send-policy-update/route.ts",
+      "source_location": "L1",
+      "id": "users_gabrielhirsh_inlook_app_api_admin_send_policy_update_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "/Users/gabrielhirsh/inlook/app/api/admin/mark-payment-link-sent/route.ts",
+      "source_location": "L1",
+      "id": "users_gabrielhirsh_inlook_app_api_admin_mark_payment_link_sent_route_ts",
       "community": 0,
       "norm_label": "route.ts"
     },
@@ -873,7 +972,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/sign-in/[[...sign-in]]/page.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_sign_in_sign_in_page_tsx",
-      "community": 23,
+      "community": 25,
       "norm_label": "page.tsx"
     },
     {
@@ -882,7 +981,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/sign-in/[[...sign-in]]/page.tsx",
       "source_location": "L8",
       "id": "page_signinpage",
-      "community": 23,
+      "community": 25,
       "norm_label": "signinpage()"
     },
     {
@@ -891,7 +990,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/pricing/page.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_app_pricing_page_tsx",
-      "community": 42,
+      "community": 45,
       "norm_label": "page.tsx"
     },
     {
@@ -900,7 +999,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/nav.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_components_nav_tsx",
-      "community": 43,
+      "community": 46,
       "norm_label": "nav.tsx"
     },
     {
@@ -909,7 +1008,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/brand-application-form.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_components_brand_application_form_tsx",
-      "community": 24,
+      "community": 26,
       "norm_label": "brand-application-form.tsx"
     },
     {
@@ -918,7 +1017,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/brand-application-form.tsx",
       "source_location": "L16",
       "id": "brand_application_form_handlesubmit",
-      "community": 24,
+      "community": 26,
       "norm_label": "handlesubmit()"
     },
     {
@@ -954,7 +1053,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/waitlist-form.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_components_waitlist_form_tsx",
-      "community": 25,
+      "community": 27,
       "norm_label": "waitlist-form.tsx"
     },
     {
@@ -963,7 +1062,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/waitlist-form.tsx",
       "source_location": "L20",
       "id": "waitlist_form_handlesubmit",
-      "community": 25,
+      "community": 27,
       "norm_label": "handlesubmit()"
     },
     {
@@ -972,7 +1071,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/verified-badge.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_components_verified_badge_tsx",
-      "community": 26,
+      "community": 28,
       "norm_label": "verified-badge.tsx"
     },
     {
@@ -981,7 +1080,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/verified-badge.tsx",
       "source_location": "L3",
       "id": "verified_badge_verifiedbadge",
-      "community": 26,
+      "community": 28,
       "norm_label": "verifiedbadge()"
     },
     {
@@ -990,7 +1089,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/creator-card.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_components_creator_card_tsx",
-      "community": 27,
+      "community": 29,
       "norm_label": "creator-card.tsx"
     },
     {
@@ -999,7 +1098,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/creator-card.tsx",
       "source_location": "L11",
       "id": "creator_card_creatorcard",
-      "community": 27,
+      "community": 29,
       "norm_label": "creatorcard()"
     },
     {
@@ -1008,7 +1107,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/footer.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_components_footer_tsx",
-      "community": 44,
+      "community": 47,
       "norm_label": "footer.tsx"
     },
     {
@@ -1044,7 +1143,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/chat-avatar.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_components_chat_avatar_tsx",
-      "community": 28,
+      "community": 30,
       "norm_label": "chat-avatar.tsx"
     },
     {
@@ -1053,7 +1152,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/chat-avatar.tsx",
       "source_location": "L21",
       "id": "chat_avatar_chatavatar",
-      "community": 28,
+      "community": 30,
       "norm_label": "chatavatar()"
     },
     {
@@ -1062,7 +1161,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/messages-preview.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_components_messages_preview_tsx",
-      "community": 45,
+      "community": 48,
       "norm_label": "messages-preview.tsx"
     },
     {
@@ -1071,7 +1170,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/logo.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_components_logo_tsx",
-      "community": 29,
+      "community": 31,
       "norm_label": "logo.tsx"
     },
     {
@@ -1080,7 +1179,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/logo.tsx",
       "source_location": "L4",
       "id": "logo_logo",
-      "community": 29,
+      "community": 31,
       "norm_label": "logo()"
     },
     {
@@ -1125,7 +1224,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/message-button.tsx",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_components_message_button_tsx",
-      "community": 30,
+      "community": 32,
       "norm_label": "message-button.tsx"
     },
     {
@@ -1134,7 +1233,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/components/message-button.tsx",
       "source_location": "L8",
       "id": "message_button_messagebutton",
-      "community": 30,
+      "community": 32,
       "norm_label": "messagebutton()"
     },
     {
@@ -1255,10 +1354,19 @@
       "norm_label": "sendbrandagreementemail()"
     },
     {
-      "label": "esc()",
+      "label": "sendPolicyUpdateEmail()",
       "file_type": "code",
       "source_file": "/Users/gabrielhirsh/inlook/lib/email.ts",
       "source_location": "L447",
+      "id": "email_sendpolicyupdateemail",
+      "community": 2,
+      "norm_label": "sendpolicyupdateemail()"
+    },
+    {
+      "label": "esc()",
+      "file_type": "code",
+      "source_file": "/Users/gabrielhirsh/inlook/lib/email.ts",
+      "source_location": "L526",
       "id": "email_esc",
       "community": 2,
       "norm_label": "esc()"
@@ -1305,7 +1413,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/lib/creators.ts",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_lib_creators_ts",
-      "community": 46,
+      "community": 49,
       "norm_label": "creators.ts"
     },
     {
@@ -1314,7 +1422,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/lib/supabase.ts",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_lib_supabase_ts",
-      "community": 47,
+      "community": 50,
       "norm_label": "supabase.ts"
     },
     {
@@ -1359,7 +1467,7 @@
       "source_file": "/Users/gabrielhirsh/inlook/lib/auth-options.ts",
       "source_location": "L1",
       "id": "users_gabrielhirsh_inlook_lib_auth_options_ts",
-      "community": 48,
+      "community": 51,
       "norm_label": "auth-options.ts"
     }
   ],
@@ -1367,8 +1475,32 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "/Users/gabrielhirsh/inlook/app/robots.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_src": "users_gabrielhirsh_inlook_app_robots_ts",
+      "_tgt": "robots_robots",
+      "source": "users_gabrielhirsh_inlook_app_robots_ts",
+      "target": "robots_robots",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/gabrielhirsh/inlook/app/sitemap.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_src": "users_gabrielhirsh_inlook_app_sitemap_ts",
+      "_tgt": "sitemap_sitemap",
+      "source": "users_gabrielhirsh_inlook_app_sitemap_ts",
+      "target": "sitemap_sitemap",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "/Users/gabrielhirsh/inlook/app/layout.tsx",
-      "source_location": "L41",
+      "source_location": "L129",
       "weight": 1.0,
       "_src": "users_gabrielhirsh_inlook_app_layout_tsx",
       "_tgt": "layout_rootlayout",
@@ -1527,8 +1659,8 @@
       "source_file": "/Users/gabrielhirsh/inlook/app/api/cron/refresh-all-stats/route.ts",
       "source_location": "L133",
       "weight": 1.0,
-      "_src": "route_refreshone",
-      "_tgt": "apply_client_update",
+      "_src": "apply_client_update",
+      "_tgt": "route_refreshone",
       "source": "apply_client_update",
       "target": "route_refreshone"
     },
@@ -1632,7 +1764,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/Users/gabrielhirsh/inlook/app/terms/page.tsx",
-      "source_location": "L8",
+      "source_location": "L11",
       "weight": 1.0,
       "_src": "users_gabrielhirsh_inlook_app_terms_page_tsx",
       "_tgt": "page_termsofservicepage",
@@ -1644,7 +1776,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
-      "source_location": "L58",
+      "source_location": "L61",
       "weight": 1.0,
       "_src": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
       "_tgt": "admin_client_handleapprove",
@@ -1656,7 +1788,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
-      "source_location": "L71",
+      "source_location": "L74",
       "weight": 1.0,
       "_src": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
       "_tgt": "admin_client_handlereject",
@@ -1668,7 +1800,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
-      "source_location": "L84",
+      "source_location": "L87",
       "weight": 1.0,
       "_src": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
       "_tgt": "admin_client_handletogglevisibility",
@@ -1680,7 +1812,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
-      "source_location": "L95",
+      "source_location": "L98",
       "weight": 1.0,
       "_src": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
       "_tgt": "admin_client_handleunreject",
@@ -1692,7 +1824,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
-      "source_location": "L108",
+      "source_location": "L111",
       "weight": 1.0,
       "_src": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
       "_tgt": "admin_client_handleverifybrand",
@@ -1704,7 +1836,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
-      "source_location": "L121",
+      "source_location": "L124",
       "weight": 1.0,
       "_src": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
       "_tgt": "admin_client_handlerejectbrand",
@@ -1716,7 +1848,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
-      "source_location": "L134",
+      "source_location": "L137",
       "weight": 1.0,
       "_src": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
       "_tgt": "admin_client_handleunrejectbrand",
@@ -1728,12 +1860,60 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
-      "source_location": "L147",
+      "source_location": "L150",
       "weight": 1.0,
       "_src": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
-      "_tgt": "admin_client_handlecancelagreement",
+      "_tgt": "admin_client_handlemarkpaymentlinksent",
       "source": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
-      "target": "admin_client_handlecancelagreement",
+      "target": "admin_client_handlemarkpaymentlinksent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
+      "source_location": "L184",
+      "weight": 1.0,
+      "_src": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
+      "_tgt": "admin_client_handlemarkpaid",
+      "source": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
+      "target": "admin_client_handlemarkpaid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
+      "source_location": "L1054",
+      "weight": 1.0,
+      "_src": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
+      "_tgt": "admin_client_pad",
+      "source": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
+      "target": "admin_client_pad",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
+      "source_location": "L1110",
+      "weight": 1.0,
+      "_src": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
+      "_tgt": "admin_client_wrap",
+      "source": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
+      "target": "admin_client_wrap",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/admin-client.tsx",
+      "source_location": "L1280",
+      "weight": 1.0,
+      "_src": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
+      "_tgt": "admin_client_handlesend",
+      "source": "users_gabrielhirsh_inlook_app_dashboard_admin_client_tsx",
+      "target": "admin_client_handlesend",
       "confidence_score": 1.0
     },
     {
@@ -1812,7 +1992,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/Users/gabrielhirsh/inlook/app/dashboard/page.tsx",
-      "source_location": "L286",
+      "source_location": "L288",
       "weight": 1.0,
       "_src": "users_gabrielhirsh_inlook_app_dashboard_page_tsx",
       "_tgt": "page_catch",
@@ -2015,6 +2195,18 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "/Users/gabrielhirsh/inlook/app/api/admin/mark-paid/route.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_src": "users_gabrielhirsh_inlook_app_api_admin_mark_paid_route_ts",
+      "_tgt": "route_post",
+      "source": "route_post",
+      "target": "users_gabrielhirsh_inlook_app_api_admin_mark_paid_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "/Users/gabrielhirsh/inlook/app/api/admin/unpublish/route.ts",
       "source_location": "L5",
       "weight": 1.0,
@@ -2051,18 +2243,6 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "/Users/gabrielhirsh/inlook/app/api/admin/cancel-agreement/route.ts",
-      "source_location": "L11",
-      "weight": 1.0,
-      "_src": "users_gabrielhirsh_inlook_app_api_admin_cancel_agreement_route_ts",
-      "_tgt": "route_post",
-      "source": "route_post",
-      "target": "users_gabrielhirsh_inlook_app_api_admin_cancel_agreement_route_ts",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
       "source_file": "/Users/gabrielhirsh/inlook/app/api/admin/verify/route.ts",
       "source_location": "L11",
       "weight": 1.0,
@@ -2094,6 +2274,30 @@
       "_tgt": "route_post",
       "source": "route_post",
       "target": "users_gabrielhirsh_inlook_app_api_admin_approve_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/gabrielhirsh/inlook/app/api/admin/send-policy-update/route.ts",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_src": "users_gabrielhirsh_inlook_app_api_admin_send_policy_update_route_ts",
+      "_tgt": "route_post",
+      "source": "route_post",
+      "target": "users_gabrielhirsh_inlook_app_api_admin_send_policy_update_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/gabrielhirsh/inlook/app/api/admin/mark-payment-link-sent/route.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_src": "users_gabrielhirsh_inlook_app_api_admin_mark_payment_link_sent_route_ts",
+      "_tgt": "route_post",
+      "source": "route_post",
+      "target": "users_gabrielhirsh_inlook_app_api_admin_mark_payment_link_sent_route_ts",
       "confidence_score": 1.0
     },
     {
@@ -2277,6 +2481,18 @@
       "target": "email_sendwelcomeemail"
     },
     {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "/Users/gabrielhirsh/inlook/app/api/admin/send-policy-update/route.ts",
+      "source_location": "L67",
+      "weight": 1.0,
+      "_src": "route_post",
+      "_tgt": "email_sendpolicyupdateemail",
+      "source": "route_post",
+      "target": "email_sendpolicyupdateemail"
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "/Users/gabrielhirsh/inlook/app/api/creator/update-profile/route.ts",
@@ -2343,8 +2559,8 @@
       "source_file": "/Users/gabrielhirsh/inlook/lib/rate-limit.ts",
       "source_location": "L40",
       "weight": 1.0,
-      "_src": "rate_limit_getip",
-      "_tgt": "route_get",
+      "_src": "route_get",
+      "_tgt": "rate_limit_getip",
       "source": "route_get",
       "target": "rate_limit_getip"
     },
@@ -2703,6 +2919,18 @@
       "source_location": "L447",
       "weight": 1.0,
       "_src": "users_gabrielhirsh_inlook_lib_email_ts",
+      "_tgt": "email_sendpolicyupdateemail",
+      "source": "users_gabrielhirsh_inlook_lib_email_ts",
+      "target": "email_sendpolicyupdateemail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/gabrielhirsh/inlook/lib/email.ts",
+      "source_location": "L526",
+      "weight": 1.0,
+      "_src": "users_gabrielhirsh_inlook_lib_email_ts",
       "_tgt": "email_esc",
       "source": "users_gabrielhirsh_inlook_lib_email_ts",
       "target": "email_esc",
@@ -2832,6 +3060,18 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "/Users/gabrielhirsh/inlook/lib/email.ts",
+      "source_location": "L453",
+      "weight": 1.0,
+      "_src": "email_sendpolicyupdateemail",
+      "_tgt": "email_gettransporter",
+      "source": "email_gettransporter",
+      "target": "email_sendpolicyupdateemail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/gabrielhirsh/inlook/lib/email.ts",
       "source_location": "L64",
       "weight": 1.0,
       "_src": "email_sendapplicationconfirmation",
@@ -2922,6 +3162,18 @@
       "_tgt": "email_layout",
       "source": "email_layout",
       "target": "email_sendbrandagreementemail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/gabrielhirsh/inlook/lib/email.ts",
+      "source_location": "L488",
+      "weight": 1.0,
+      "_src": "email_sendpolicyupdateemail",
+      "_tgt": "email_layout",
+      "source": "email_layout",
+      "target": "email_sendpolicyupdateemail",
       "confidence_score": 1.0
     },
     {
@@ -3041,6 +3293,18 @@
       "_src": "email_sendbrandagreementemail",
       "_tgt": "email_esc",
       "source": "email_sendbrandagreementemail",
+      "target": "email_esc",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "/Users/gabrielhirsh/inlook/lib/email.ts",
+      "source_location": "L476",
+      "weight": 1.0,
+      "_src": "email_sendpolicyupdateemail",
+      "_tgt": "email_esc",
+      "source": "email_sendpolicyupdateemail",
       "target": "email_esc",
       "confidence_score": 1.0
     },

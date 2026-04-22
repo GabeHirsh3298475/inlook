@@ -59,21 +59,12 @@ export const metadata: Metadata = {
     description:
       "Connect with verified YouTube creators. Real engagement data, transparent pricing, no agency markup.",
     siteName: "Inlook",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Inlook — Creator marketplace with verified engagement",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Inlook — Creator marketplace with verified engagement",
     description:
       "Connect with verified YouTube creators. Real engagement data, transparent pricing, no agency markup.",
-    images: ["/og-image.png"],
     creator: "@inlook_startup",
   },
   robots: {

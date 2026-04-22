@@ -19,7 +19,10 @@ Brand-creator marketplace that connects small brands with verified YouTube creat
 ```
 app/
   page.tsx              # Homepage (landing)
-  layout.tsx            # Root layout with ClerkProvider + SessionProvider
+  layout.tsx            # Root layout with ClerkProvider + SessionProvider. Sets metadataBase + openGraph/twitter card (images auto-wired by app/opengraph-image.tsx)
+  opengraph-image.tsx   # Dynamic 1200x630 OG/Twitter image via next/og ImageResponse (edge runtime). Renders logo + "Connect your brand with creators" + tagline. File-convention overrides metadata.openGraph.images for every route unless a segment defines its own
+  sitemap.ts            # Public sitemap (static routes + dynamic creator URLs)
+  robots.ts             # robots.txt (disallow /api/, /dashboard, /messages, /sign-in*, /sign-up, /no-signup)
   providers.tsx         # Client-side providers wrapper
   apply/                # Creator application form (6 fields) with YouTube OAuth
   brands/               # Brand-facing page (includes brand waitlist form)
