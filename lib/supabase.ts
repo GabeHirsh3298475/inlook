@@ -33,7 +33,21 @@ export type ConversationRow = {
   creator_agreed_long_at: string | null;
   creator_agreed_short: boolean;
   creator_agreed_short_at: string | null;
+  payment_link_sent_long: boolean;
+  payment_link_sent_long_at: string | null;
+  payment_link_sent_short: boolean;
+  payment_link_sent_short_at: string | null;
+  paid_long: boolean;
+  paid_long_at: string | null;
+  paid_short: boolean;
+  paid_short_at: string | null;
 };
+
+export type AgreementStatus =
+  | "offered"
+  | "agreed"
+  | "payment_link_sent"
+  | "paid";
 
 export type AgreementEntry = {
   conversationId: string;
@@ -41,9 +55,12 @@ export type AgreementEntry = {
   creatorId: string;
   brandName: string;
   creatorName: string;
-  who: "brand" | "creator";
   format: "long" | "short";
-  agreedAt: string;
+  status: AgreementStatus;
+  brandOfferedAt: string | null;
+  creatorAgreedAt: string | null;
+  paymentLinkSentAt: string | null;
+  paidAt: string | null;
 };
 
 export type MessageRow = {

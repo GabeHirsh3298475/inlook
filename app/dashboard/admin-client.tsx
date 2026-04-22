@@ -15,6 +15,9 @@ import {
   BadgeCheck,
   Eye,
   Share2,
+  Send,
+  Clock,
+  Mail,
 } from "lucide-react";
 import type {
   CreatorRow,
@@ -144,26 +147,67 @@ export function AdminClient({
     });
   }
 
-  async function handleCancelAgreement(entry: AgreementEntry) {
+  async function handleMarkPaymentLinkSent(entry: AgreementEntry) {
+    const nowIso = new Date().toISOString();
     setAgreements((prev) =>
-      prev.filter(
-        (a) =>
-          !(
-            a.conversationId === entry.conversationId &&
-            a.who === entry.who &&
-            a.format === entry.format
-          )
+      prev.map((a) =>
+        a.conversationId === entry.conversationId && a.format === entry.format
+          ? {
+              ...a,
+              status: "payment_link_sent",
+              paymentLinkSentAt: nowIso,
+            }
+          : a
       )
     );
-    await fetch("/api/admin/cancel-agreement", {
+    const res = await fetch("/api/admin/mark-payment-link-sent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         conversationId: entry.conversationId,
-        who: entry.who,
         format: entry.format,
       }),
     });
+    if (!res.ok) {
+      // revert
+      setAgreements((prev) =>
+        prev.map((a) =>
+          a.conversationId === entry.conversationId &&
+          a.format === entry.format
+            ? { ...a, status: "agreed", paymentLinkSentAt: null }
+            : a
+        )
+      );
+    }
+  }
+
+  async function handleMarkPaid(entry: AgreementEntry) {
+    const nowIso = new Date().toISOString();
+    setAgreements((prev) =>
+      prev.map((a) =>
+        a.conversationId === entry.conversationId && a.format === entry.format
+          ? { ...a, status: "paid", paidAt: nowIso }
+          : a
+      )
+    );
+    const res = await fetch("/api/admin/mark-paid", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        conversationId: entry.conversationId,
+        format: entry.format,
+      }),
+    });
+    if (!res.ok) {
+      setAgreements((prev) =>
+        prev.map((a) =>
+          a.conversationId === entry.conversationId &&
+          a.format === entry.format
+            ? { ...a, status: "payment_link_sent", paidAt: null }
+            : a
+        )
+      );
+    }
   }
 
   return (
@@ -215,7 +259,8 @@ export function AdminClient({
         {section === "agreements" ? (
           <AgreementsPanel
             agreements={agreements}
-            onCancel={handleCancelAgreement}
+            onMarkPaymentLinkSent={handleMarkPaymentLinkSent}
+            onMarkPaid={handleMarkPaid}
           />
         ) : section === "creators" ? (
           <>
@@ -946,133 +991,406 @@ function EmptyState({ text }: { text: string }) {
 
 function AgreementsPanel({
   agreements,
-  onCancel,
+  onMarkPaymentLinkSent,
+  onMarkPaid,
 }: {
   agreements: AgreementEntry[];
-  onCancel: (entry: AgreementEntry) => Promise<void>;
+  onMarkPaymentLinkSent: (entry: AgreementEntry) => Promise<void>;
+  onMarkPaid: (entry: AgreementEntry) => Promise<void>;
 }) {
+  const [policyOpen, setPolicyOpen] = useState(false);
+  const brandOffers = agreements.length;
+  const processing = agreements.filter(
+    (a) => a.status === "agreed" || a.status === "payment_link_sent"
+  ).length;
+  const completed = agreements.filter((a) => a.status === "paid").length;
+
   return (
     <div className="mt-8">
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <StatCard
-          icon={Handshake}
-          label="Total Agreements"
-          value={agreements.length}
-        />
-        <StatCard
-          icon={BadgeCheck}
-          label="Brand Agreements"
-          value={agreements.filter((a) => a.who === "brand").length}
-        />
-        <StatCard
-          icon={Users}
-          label="Creator Agreements"
-          value={agreements.filter((a) => a.who === "creator").length}
-        />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatCard icon={Handshake} label="Brand offers" value={brandOffers} />
+        <StatCard icon={Clock} label="Agreements processing" value={processing} />
+        <StatCard icon={BadgeCheck} label="Completed agreements" value={completed} />
       </div>
-      <div className="mt-8">
+
+      <div className="mt-6 flex items-center justify-between">
+        <h2 className="font-display text-lg font-medium text-ink-50">Agreements</h2>
+        <button
+          type="button"
+          onClick={() => setPolicyOpen(true)}
+          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-ink-700 bg-ink-850 px-4 font-sans text-[13px] font-medium text-ink-200 transition-all hover:border-accent/40 hover:text-accent"
+        >
+          <Mail className="h-3.5 w-3.5" strokeWidth={2} />
+          Email policy update
+        </button>
+      </div>
+
+      <div className="mt-4">
         {agreements.length === 0 ? (
           <EmptyState text="No agreements yet." />
         ) : (
           <div className="space-y-3">
             {agreements.map((a) => (
               <AgreementRow
-                key={`${a.conversationId}:${a.who}:${a.format}`}
+                key={`${a.conversationId}:${a.format}`}
                 entry={a}
-                onCancel={onCancel}
+                onMarkPaymentLinkSent={onMarkPaymentLinkSent}
+                onMarkPaid={onMarkPaid}
               />
             ))}
           </div>
         )}
       </div>
+
+      {policyOpen && <PolicyUpdateModal onClose={() => setPolicyOpen(false)} />}
     </div>
   );
 }
 
+function fmtUtc(iso: string | null): string {
+  if (!iso) return "-";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "-";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(
+    d.getUTCDate()
+  )} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;
+}
+
+function statusChip(status: AgreementEntry["status"]) {
+  if (status === "offered")
+    return {
+      label: "Offered",
+      dot: "bg-ink-500",
+      textClass: "text-ink-300",
+      borderClass: "border-ink-700",
+      blink: false,
+    };
+  if (status === "agreed")
+    return {
+      label: "Agreed",
+      dot: "bg-accent",
+      textClass: "text-accent",
+      borderClass: "border-accent/40",
+      blink: false,
+    };
+  if (status === "payment_link_sent")
+    return {
+      label: "Payment link sent",
+      dot: "bg-yellow-400",
+      textClass: "text-yellow-300",
+      borderClass: "border-yellow-400/40",
+      blink: true,
+    };
+  return {
+    label: "Paid",
+    dot: "bg-amber-400",
+    textClass: "text-amber-300",
+    borderClass: "border-amber-400/40",
+    blink: false,
+  };
+}
+
 function AgreementRow({
   entry,
-  onCancel,
+  onMarkPaymentLinkSent,
+  onMarkPaid,
 }: {
   entry: AgreementEntry;
-  onCancel: (entry: AgreementEntry) => Promise<void>;
+  onMarkPaymentLinkSent: (entry: AgreementEntry) => Promise<void>;
+  onMarkPaid: (entry: AgreementEntry) => Promise<void>;
 }) {
-  const [mode, setMode] = useState<"idle" | "confirming">("idle");
   const [submitting, setSubmitting] = useState(false);
-  const date = entry.agreedAt
-    ? new Date(entry.agreedAt).toLocaleString()
-    : "—";
+  const chip = statusChip(entry.status);
+  const creatorAgreed = entry.status !== "offered";
+  const paymentLinkSent =
+    entry.status === "payment_link_sent" || entry.status === "paid";
+  const paid = entry.status === "paid";
+
+  async function wrap(fn: () => Promise<void>) {
+    setSubmitting(true);
+    try {
+      await fn();
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
-    <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-ink-800 bg-ink-900 px-5 py-4">
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <p className="font-display text-base font-medium text-ink-50">
-            {entry.brandName}
-          </p>
-          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-500">
-            &mdash;
+    <div className={`rounded-2xl border ${chip.borderClass} bg-ink-900 p-5`}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <ParticipantLabel kind="brand" name={entry.brandName} />
+            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-500">
+              &rarr;
+            </span>
+            <ParticipantLabel kind="creator" name={entry.creatorName} />
+          </div>
+        </div>
+        <div className="inline-flex items-center gap-2">
+          <span className="relative inline-flex h-2.5 w-2.5 items-center justify-center rounded-full bg-ink-800">
+            <span
+              className={`absolute inset-0 rounded-full ${chip.dot} ${
+                chip.blink ? "animate-pulse" : ""
+              }`}
+            />
           </span>
-          <p className="font-display text-base font-medium text-ink-50">
-            {entry.creatorName}
+          <span
+            className={`font-mono text-[11px] uppercase tracking-[0.14em] ${chip.textClass}`}
+          >
+            {chip.label}
+          </span>
+          <span className="inline-flex items-center rounded-full border border-ink-700 bg-ink-850 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-200">
+            {entry.format === "long" ? "Long" : "Short"}
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-xl border border-ink-800 bg-ink-950/40 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-300">
+            Brand offered
+          </p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-500">
+            {fmtUtc(entry.brandOfferedAt)}
           </p>
         </div>
-        <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-400">
-          {date}
-        </p>
+
+        <div className="mt-3 rounded-lg border border-ink-800 bg-ink-900 p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p
+              className={`font-mono text-[11px] uppercase tracking-[0.14em] ${
+                creatorAgreed ? "text-accent" : "text-ink-500"
+              }`}
+            >
+              {creatorAgreed ? "Creator agreed" : "Creator not yet agreed"}
+            </p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-500">
+              {fmtUtc(entry.creatorAgreedAt)}
+            </p>
+          </div>
+        </div>
       </div>
-      <div className="flex items-center gap-2">
-        <span
-          className={`inline-flex items-center rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${
-            entry.who === "brand"
-              ? "bg-accent/10 text-accent"
-              : "bg-blue-500/10 text-blue-300"
-          }`}
-        >
-          {entry.who === "brand" ? "Brand agreed" : "Creator agreed"}
-        </span>
-        <span className="inline-flex items-center rounded-full border border-ink-700 bg-ink-850 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-200">
-          {entry.format === "long" ? "Long" : "Short"}
-        </span>
-      </div>
-      {mode === "idle" ? (
-        <button
-          type="button"
-          onClick={() => setMode("confirming")}
-          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-ink-700 bg-ink-850 px-4 font-sans text-[13px] font-medium text-ink-300 transition-all hover:border-red-500/40 hover:text-red-300"
-        >
-          <X className="h-3.5 w-3.5" strokeWidth={2} />
-          Cancel agreement
-        </button>
-      ) : (
-        <div className="inline-flex items-center gap-1">
-          <button
-            type="button"
+
+      {creatorAgreed && (
+        <div className="mt-4 space-y-2">
+          <SwitchRow
+            label="Payment link sent"
+            checked={paymentLinkSent}
+            locked={paymentLinkSent}
             disabled={submitting}
-            onClick={async () => {
-              setSubmitting(true);
-              try {
-                await onCancel(entry);
-              } finally {
-                setSubmitting(false);
-                setMode("idle");
-              }
-            }}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-red-500/90 px-4 font-sans text-[13px] font-medium text-ink-50 transition-all hover:bg-red-500 disabled:opacity-60"
-          >
-            <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
-            {submitting ? "Canceling\u2026" : "Confirm cancel"}
-          </button>
-          <button
-            type="button"
-            disabled={submitting}
-            onClick={() => setMode("idle")}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-ink-700 bg-ink-850 px-3 font-sans text-[13px] font-medium text-ink-300 transition-all hover:border-ink-600 hover:text-ink-50 disabled:opacity-60"
-          >
-            <X className="h-3.5 w-3.5" strokeWidth={2} />
-            Back
-          </button>
+            timestamp={entry.paymentLinkSentAt}
+            onToggle={() => wrap(() => onMarkPaymentLinkSent(entry))}
+          />
+          <SwitchRow
+            label="Paid"
+            checked={paid}
+            locked={paid}
+            disabled={submitting || !paymentLinkSent}
+            timestamp={entry.paidAt}
+            onToggle={() => wrap(() => onMarkPaid(entry))}
+          />
         </div>
       )}
+    </div>
+  );
+}
+
+function ParticipantLabel({
+  kind,
+  name,
+}: {
+  kind: "brand" | "creator";
+  name: string;
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-500">
+        {kind}
+      </p>
+      <p className="mt-0.5 truncate font-display text-base font-medium text-ink-50">
+        {name}
+      </p>
+    </div>
+  );
+}
+
+function SwitchRow({
+  label,
+  checked,
+  locked,
+  disabled,
+  timestamp,
+  onToggle,
+}: {
+  label: string;
+  checked: boolean;
+  locked: boolean;
+  disabled: boolean;
+  timestamp: string | null;
+  onToggle: () => void;
+}) {
+  const hardDisabled = disabled || locked;
+  return (
+    <div
+      className={`flex items-center justify-between rounded-xl border px-4 py-3 ${
+        checked ? "border-ink-800 bg-ink-900" : "border-ink-800 bg-ink-950/40"
+      }`}
+    >
+      <div className="min-w-0">
+        <p className="font-sans text-sm text-ink-100">{label}</p>
+        {checked && timestamp && (
+          <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-500">
+            {fmtUtc(timestamp)}
+          </p>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={hardDisabled ? undefined : onToggle}
+        disabled={hardDisabled}
+        aria-pressed={checked}
+        className={`relative inline-flex h-6 w-11 flex-none items-center rounded-full transition-colors ${
+          checked ? "bg-accent" : "bg-ink-700"
+        } ${
+          hardDisabled && !locked
+            ? "cursor-not-allowed opacity-50"
+            : locked
+            ? "cursor-default"
+            : "cursor-pointer"
+        }`}
+      >
+        <span
+          className={`inline-block h-5 w-5 transform rounded-full bg-ink-950 transition-transform ${
+            checked ? "translate-x-5" : "translate-x-0.5"
+          }`}
+        />
+      </button>
+    </div>
+  );
+}
+
+function PolicyUpdateModal({ onClose }: { onClose: () => void }) {
+  const [type, setType] = useState<"terms" | "privacy" | "both">("terms");
+  const [summary, setSummary] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+
+  async function handleSend() {
+    setSubmitting(true);
+    setResult(null);
+    try {
+      const res = await fetch("/api/admin/send-policy-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type, summary }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setResult(data.error ?? "Failed to send");
+      } else {
+        setResult(
+          `Sent to ${data.sent}/${data.total} recipients${
+            data.failed ? ` (${data.failed} failed)` : ""
+          }.`
+        );
+      }
+    } catch (err) {
+      setResult((err as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-950/80 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg rounded-2xl border border-ink-800 bg-ink-900 p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="font-display text-xl font-medium text-ink-50">
+              Email policy update
+            </h3>
+            <p className="mt-1 font-sans text-[13px] leading-relaxed text-ink-300">
+              Notify all signed-up creators and brands that the Terms or
+              Privacy Policy has been updated. The email includes the required
+              acceptance language.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-full border border-ink-700 text-ink-300 transition-colors hover:border-ink-600 hover:text-ink-50"
+          >
+            <X className="h-4 w-4" strokeWidth={2} />
+          </button>
+        </div>
+
+        <div className="mt-5 space-y-4">
+          <div>
+            <p className="eyebrow">Policy</p>
+            <div className="mt-2 inline-flex rounded-full border border-ink-700 bg-ink-850 p-1">
+              {(["terms", "privacy", "both"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setType(t)}
+                  className={`rounded-full px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors ${
+                    type === t
+                      ? "bg-accent text-ink-950"
+                      : "text-ink-300 hover:text-ink-50"
+                  }`}
+                >
+                  {t === "terms" ? "Terms" : t === "privacy" ? "Privacy" : "Both"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="eyebrow">Summary of changes</p>
+            <textarea
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+              maxLength={1000}
+              rows={4}
+              placeholder="Short plain-language summary included in the email body (optional, max 1000 chars)."
+              className="mt-2 w-full rounded-xl border border-ink-700 bg-ink-950 p-3 font-sans text-sm text-ink-50 placeholder:text-ink-500 focus:border-accent focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="mt-6 flex items-center justify-between gap-3">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-400">
+            {result ?? ""}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={submitting}
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-ink-700 bg-ink-850 px-4 font-sans text-[13px] font-medium text-ink-300 transition-all hover:border-ink-600 hover:text-ink-50 disabled:opacity-60"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={submitting}
+              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-accent px-4 font-sans text-[13px] font-medium text-ink-950 transition-all hover:bg-accent/90 disabled:opacity-60"
+            >
+              <Send className="h-3.5 w-3.5" strokeWidth={2} />
+              {submitting ? "Sending..." : "Send to all users"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

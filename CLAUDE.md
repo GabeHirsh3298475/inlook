@@ -42,7 +42,7 @@ app/
       save-youtube-tokens/ # Saves NextAuth YouTube tokens to creator row (used for re-sync)
       sync-youtube/     # Fetches YouTube Data API + Analytics API stats, returns channel info
     auth/[...nextauth]/ # NextAuth Google OAuth handler
-    admin/              # approve, reject, unreject, unpublish, toggle-visibility (creators); verify, reject-brand, unreject-brand (brands); cancel-agreement (agreements)
+    admin/              # approve, reject, unreject, unpublish, toggle-visibility (creators); verify, reject-brand, unreject-brand (brands); mark-payment-link-sent, mark-paid (agreements); send-policy-update (mass email)
     brands/apply/       # POST brand application (inserts brand row + emails support@inlookdeals.com)
     brand/              # link-account, update-bio endpoints
     creator/            # link-account, publish, update-profile, refresh-stats endpoints
@@ -289,13 +289,19 @@ ALTER TABLE creators DROP COLUMN IF EXISTS avg_click_through_rate;
 
 ### `conversations` table
 
-Columns: `id` (uuid pk), `brand_id` (fk → brands.id), `creator_id` (fk → creators.id), `created_at` (timestamptz), `last_message_at` (timestamptz, nullable), `last_message_preview` (text, nullable — truncated to 200 chars), plus 8 agreement columns:
-- `brand_agreed_long` / `brand_agreed_long_at`
+Columns: `id` (uuid pk), `brand_id` (fk → brands.id), `creator_id` (fk → creators.id), `created_at` (timestamptz), `last_message_at` (timestamptz, nullable), `last_message_preview` (text, nullable — truncated to 200 chars), plus 16 agreement lifecycle columns (8 bool + 8 timestamp) per format:
+- `brand_agreed_long` / `brand_agreed_long_at` (brand offer for long)
 - `brand_agreed_short` / `brand_agreed_short_at`
-- `creator_agreed_long` / `creator_agreed_long_at`
+- `creator_agreed_long` / `creator_agreed_long_at` (creator accepts brand offer)
 - `creator_agreed_short` / `creator_agreed_short_at`
+- `payment_link_sent_long` / `payment_link_sent_long_at` (admin-flipped, one-way)
+- `payment_link_sent_short` / `payment_link_sent_short_at`
+- `paid_long` / `paid_long_at` (admin-flipped, one-way; increments creator `deals_completed`)
+- `paid_short` / `paid_short_at`
 
 Booleans default `false`; timestamps are nullable. Unique constraint on `(brand_id, creator_id)` — used by `/api/messages/start` for idempotent upsert.
+
+**Agreement status state machine** (derived in `fetchAgreements`): for each format where `brand_agreed_[fmt] = true`, status is `"paid"` if `paid_[fmt]`, else `"payment_link_sent"` if `payment_link_sent_[fmt]`, else `"agreed"` if `creator_agreed_[fmt]`, else `"offered"`. Admin panel renders one row per `brand_agreed_[fmt]` entry (long and short counted separately).
 
 ### `messages` table
 
@@ -334,6 +340,15 @@ ALTER TABLE conversations ADD COLUMN IF NOT EXISTS creator_agreed_long boolean N
 ALTER TABLE conversations ADD COLUMN IF NOT EXISTS creator_agreed_long_at timestamptz;
 ALTER TABLE conversations ADD COLUMN IF NOT EXISTS creator_agreed_short boolean NOT NULL DEFAULT false;
 ALTER TABLE conversations ADD COLUMN IF NOT EXISTS creator_agreed_short_at timestamptz;
+
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS payment_link_sent_long boolean NOT NULL DEFAULT false;
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS payment_link_sent_long_at timestamptz;
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS payment_link_sent_short boolean NOT NULL DEFAULT false;
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS payment_link_sent_short_at timestamptz;
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS paid_long boolean NOT NULL DEFAULT false;
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS paid_long_at timestamptz;
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS paid_short boolean NOT NULL DEFAULT false;
+ALTER TABLE conversations ADD COLUMN IF NOT EXISTS paid_short_at timestamptz;
 ```
 
 ### `creator_waitlist` table

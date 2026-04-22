@@ -86,11 +86,9 @@ async function fetchAgreements(): Promise<AgreementEntry[]> {
   const { data: convs } = await supabase
     .from("conversations")
     .select(
-      "id, brand_id, creator_id, brand_agreed_long, brand_agreed_long_at, brand_agreed_short, brand_agreed_short_at, creator_agreed_long, creator_agreed_long_at, creator_agreed_short, creator_agreed_short_at"
+      "id, brand_id, creator_id, brand_agreed_long, brand_agreed_long_at, brand_agreed_short, brand_agreed_short_at, creator_agreed_long, creator_agreed_long_at, creator_agreed_short, creator_agreed_short_at, payment_link_sent_long, payment_link_sent_long_at, payment_link_sent_short, payment_link_sent_short_at, paid_long, paid_long_at, paid_short, paid_short_at"
     )
-    .or(
-      "brand_agreed_long.eq.true,brand_agreed_short.eq.true,creator_agreed_long.eq.true,creator_agreed_short.eq.true"
-    );
+    .or("brand_agreed_long.eq.true,brand_agreed_short.eq.true");
   if (!convs || convs.length === 0) return [];
 
   const brandIds = Array.from(new Set(convs.map((c) => c.brand_id as string)));
@@ -130,37 +128,41 @@ async function fetchAgreements(): Promise<AgreementEntry[]> {
       brandName: brandMap.get(c.brand_id as string) ?? "Brand",
       creatorName: creatorMap.get(c.creator_id as string) ?? "Creator",
     };
-    if (c.brand_agreed_long)
+
+    for (const format of ["long", "short"] as const) {
+      const brandOffered = c[`brand_agreed_${format}`] as boolean;
+      if (!brandOffered) continue;
+      const creatorAgreed = c[`creator_agreed_${format}`] as boolean;
+      const paymentLinkSent = c[`payment_link_sent_${format}`] as boolean;
+      const paid = c[`paid_${format}`] as boolean;
+
+      const status: AgreementEntry["status"] = paid
+        ? "paid"
+        : paymentLinkSent
+        ? "payment_link_sent"
+        : creatorAgreed
+        ? "agreed"
+        : "offered";
+
       entries.push({
         ...base,
-        who: "brand",
-        format: "long",
-        agreedAt: (c.brand_agreed_long_at as string) ?? "",
+        format,
+        status,
+        brandOfferedAt: (c[`brand_agreed_${format}_at`] as string) ?? null,
+        creatorAgreedAt:
+          (c[`creator_agreed_${format}_at`] as string | null) ?? null,
+        paymentLinkSentAt:
+          (c[`payment_link_sent_${format}_at`] as string | null) ?? null,
+        paidAt: (c[`paid_${format}_at`] as string | null) ?? null,
       });
-    if (c.brand_agreed_short)
-      entries.push({
-        ...base,
-        who: "brand",
-        format: "short",
-        agreedAt: (c.brand_agreed_short_at as string) ?? "",
-      });
-    if (c.creator_agreed_long)
-      entries.push({
-        ...base,
-        who: "creator",
-        format: "long",
-        agreedAt: (c.creator_agreed_long_at as string) ?? "",
-      });
-    if (c.creator_agreed_short)
-      entries.push({
-        ...base,
-        who: "creator",
-        format: "short",
-        agreedAt: (c.creator_agreed_short_at as string) ?? "",
-      });
+    }
   }
 
-  entries.sort((a, b) => (a.agreedAt < b.agreedAt ? 1 : -1));
+  entries.sort((a, b) => {
+    const ta = a.brandOfferedAt ?? "";
+    const tb = b.brandOfferedAt ?? "";
+    return ta < tb ? 1 : -1;
+  });
   return entries;
 }
 
