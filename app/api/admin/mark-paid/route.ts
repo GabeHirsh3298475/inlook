@@ -118,5 +118,22 @@ export async function POST(req: Request) {
       .eq("id", creatorId);
   }
 
+  // Reset the per-format agreement cycle on the conversation so the brand
+  // and creator can start a fresh offer for the same format. The completed
+  // deal is already snapshotted in `deals` above.
+  await supabase
+    .from("conversations")
+    .update({
+      [`brand_agreed_${format}`]: false,
+      [`brand_agreed_${format}_at`]: null,
+      [`creator_agreed_${format}`]: false,
+      [`creator_agreed_${format}_at`]: null,
+      [`payment_link_sent_${format}`]: false,
+      [`payment_link_sent_${format}_at`]: null,
+      [`paid_${format}`]: false,
+      [`paid_${format}_at`]: null,
+    })
+    .eq("id", conversationId);
+
   return NextResponse.json({ ok: true });
 }
