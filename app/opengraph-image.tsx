@@ -5,30 +5,7 @@ export const alt = "Inlook - Creator marketplace with verified engagement";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-async function loadGoogleFont(family: string, weight: number, italic: boolean) {
-  const url = `https://fonts.googleapis.com/css2?family=${family.replace(
-    / /g,
-    "+"
-  )}:ital,wght@${italic ? 1 : 0},${weight}&display=swap`;
-  const css = await fetch(url, {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36",
-    },
-  }).then((r) => r.text());
-  const match = css.match(/src:\s*url\(([^)]+)\)\s*format\(['"]?(woff2|truetype|opentype)['"]?\)/);
-  if (!match) throw new Error(`font not found: ${family}`);
-  const fontRes = await fetch(match[1]);
-  if (!fontRes.ok) throw new Error(`font fetch failed: ${fontRes.status}`);
-  return fontRes.arrayBuffer();
-}
-
 export default async function OpengraphImage() {
-  const [fraunces, frauncesBold] = await Promise.all([
-    loadGoogleFont("Fraunces", 500, true),
-    loadGoogleFont("Fraunces", 700, true),
-  ]);
-
   const logoSvg =
     "data:image/svg+xml;utf8," +
     encodeURIComponent(
@@ -49,7 +26,7 @@ export default async function OpengraphImage() {
           backgroundImage:
             "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(74,144,255,0.22), rgba(10,10,11,1) 60%)",
           color: "#f5f5f5",
-          fontFamily: "Fraunces",
+          fontFamily: "serif",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
@@ -65,6 +42,7 @@ export default async function OpengraphImage() {
               fontWeight: 500,
               letterSpacing: "-0.02em",
               lineHeight: 1,
+              fontFamily: "serif",
             }}
           >
             <span style={{ color: "#f5f5f5" }}>Inlook</span>
@@ -82,7 +60,7 @@ export default async function OpengraphImage() {
               letterSpacing: "-0.03em",
               color: "#ffffff",
               maxWidth: 1000,
-              fontFamily: "Fraunces",
+              fontFamily: "serif",
             }}
           >
             Connect your brand with creators
@@ -94,7 +72,7 @@ export default async function OpengraphImage() {
               lineHeight: 1.35,
               color: "#b8b8bd",
               maxWidth: 1020,
-              fontStyle: "italic",
+              fontFamily: "sans-serif",
             }}
           >
             Creator marketplace with verified engagement data, clear pricing,
@@ -105,7 +83,7 @@ export default async function OpengraphImage() {
               display: "flex",
               fontSize: 22,
               color: "#8a8a90",
-              fontStyle: "italic",
+              fontFamily: "sans-serif",
             }}
           >
             inlookdeals.com
@@ -113,22 +91,6 @@ export default async function OpengraphImage() {
         </div>
       </div>
     ),
-    {
-      ...size,
-      fonts: [
-        {
-          name: "Fraunces",
-          data: fraunces,
-          weight: 500,
-          style: "italic",
-        },
-        {
-          name: "Fraunces",
-          data: frauncesBold,
-          weight: 700,
-          style: "italic",
-        },
-      ],
-    }
+    { ...size }
   );
 }
