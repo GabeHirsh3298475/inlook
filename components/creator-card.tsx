@@ -69,7 +69,7 @@ export function CreatorCard({
             {creator.name}
           </h3>
         </div>
-        <NicheChip niche={creator.niche} />
+        {creator.niche && <NicheChip niche={creator.niche} />}
       </header>
 
       <section className="px-6 pb-5">

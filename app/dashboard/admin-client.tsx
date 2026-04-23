@@ -947,7 +947,7 @@ function Detail({
   accent,
 }: {
   label: string;
-  value: string;
+  value: string | null | undefined;
   accent?: boolean;
 }) {
   return (
@@ -960,7 +960,7 @@ function Detail({
           accent ? "text-accent" : "text-ink-50"
         }`}
       >
-        {value}
+        {value ?? "—"}
       </p>
     </div>
   );

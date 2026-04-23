@@ -24,7 +24,7 @@ app/
   sitemap.ts            # Public sitemap (static routes + dynamic creator URLs)
   robots.ts             # robots.txt (disallow /api/, /dashboard, /messages, /sign-in*, /sign-up, /no-signup)
   providers.tsx         # Client-side providers wrapper
-  apply/                # Creator application form (6 fields) with YouTube OAuth
+  apply/                # Creator application form (4 fields: name, email, platform, niche) with YouTube + TikTok OAuth (at least one required)
   brands/               # Brand-facing page (includes brand waitlist form)
     [id]/               # Protected brand profile (creator/brand/admin only — shows business_name/bio/product_url/social_url, NEVER email)
   creators/             # Public creator network browser (server component fetches live creators from Supabase)
@@ -64,23 +64,23 @@ types/
 
 ### 1. Creator Application Flow
 
-1. Creator visits `/apply` — sees 6-field form (name, email, platform, niche, channel URL, follower range) + "Connect YouTube Account" button
-2. Creator fills in fields, clicks "Connect YouTube Account"
-3. Form data saved to `sessionStorage` under key `"inlook-apply-draft"` before OAuth redirect
-4. NextAuth Google OAuth (`youtube.readonly` + `yt-analytics.readonly` scopes) → redirect to Google → redirect back to `/apply`
-5. On mount, form fields restored from `sessionStorage` — data persists across the OAuth round-trip
-6. YouTube sync fires automatically once `connected === true` AND `form.email` is populated:
-   - `POST /api/apply/save-youtube-tokens` — saves access/refresh tokens to Supabase creator row
-   - `POST /api/apply/sync-youtube` — calls YouTube Data API + Analytics API, saves stats to Supabase, returns channel info (name, profile picture, subscriber count) to client
-7. Profile picture + subscriber count shown in the YouTube Connect card on the form
-8. Creator clicks "Submit application" → `POST /api/apply`:
-   - Inserts creator row to Supabase (`approved: false`, `published: false`)
-   - Runs YouTube Data + Analytics API fetch inline and saves all stats
-   - Sends application confirmation email to creator (`sendApplicationConfirmation`)
-   - Sends admin notification email to `support@inlookdeals.com` (`sendAdminNotification`)
-9. Success message: "Application received"
+1. Creator visits `/apply` — sees 4-field form (name, email, platform, niche) + "Connect YouTube" and "Connect TikTok" cards. Follower totals are pulled from the connected platforms — no manual entry, no channel URL field.
+2. Form data persists across **both** OAuth round-trips via `sessionStorage` under key `"inlook-apply-draft"`:
+   - **YouTube:** NextAuth Google OAuth (`youtube.readonly` + `yt-analytics.readonly`). On return, YouTube sync fires once `connected === true` AND `form.email` is populated (`POST /api/apply/save-youtube-tokens` then `POST /api/apply/sync-youtube`).
+   - **TikTok:** `GET /api/tiktok/start` — CSRF state + PKCE S256, redirects to TikTok authorize. Scopes `user.info.basic,user.info.stats,video.list`. Callback at `/api/tiktok/callback` sets a signed `inlook_tiktok` cookie (HMAC-SHA256 via `NEXTAUTH_SECRET`) with tokens + profile snapshot, redirects to `/apply?tiktok=connected`. `/apply` reads live status via `GET /api/tiktok/status` (cookie payload minus tokens). Disconnect: `POST /api/tiktok/disconnect`.
+3. **Submission rule:** at least one of YouTube or TikTok must be connected. `POST /api/apply` returns 400 otherwise.
+4. On submit:
+   - Inserts creator row (`approved: false`, `published: false`), persists YouTube tokens and TikTok tokens + profile snapshot from the signed cookie (via `verifyCookie()` in `lib/tiktok.ts`).
+   - Runs YouTube Data + Analytics sync inline if connected.
+   - Runs TikTok video aggregate (`fetchVideoAggregate` in `lib/tiktok.ts`) inline if connected — pages through `video.list` (up to 10 pages × 20 videos), sums likes/comments/shares/views for lifetime and for videos with `create_time` in the last 30d, writes all totals + rates to Supabase.
+   - Sends application confirmation + admin notification emails.
+   - Clears the TikTok cookie on success.
 
-**Important:** YouTube tokens and stats are saved inside `POST /api/apply` (not before), because the creator row must exist first. The sync-youtube call in step 6 also saves stats, but the apply route re-fetches to ensure the data is current at submission time.
+**TikTok metrics computed at sync time:**
+- `tiktok_avg_engagement_rate` = `(total_likes + total_comments + total_shares) / total_views × 100` (capped at 100)
+- `tiktok_engagement_rate_30d` = same, restricted to videos posted in last 30 days
+- Per-view ratios rendered on the dashboard: avg likes / avg comments / avg shares = `total_X / total_views × 100`
+- **Not available from TikTok Login Kit:** saves/bookmarks. Engagement math uses likes + comments + shares only.
 
 ### 2. Admin Approval Flow
 
@@ -112,9 +112,11 @@ types/
 
 1. Creator signs in → `/dashboard` server component fetches creator row by `clerk_user_id` (and falls back to linking by email if the row has no `clerk_user_id` yet — first load after sign-up). Same fallback also syncs the creator's `full_name` back to Clerk as firstName/lastName.
 2. **Draft state** (not yet published):
-   - YouTube verified stats displayed (subscribers, engagement rate, avg view %, sub growth, total videos, days on Inlook, deals completed). "Refresh" button re-syncs via `POST /api/creator/refresh-stats`.
-   - Profile setup form: social links (TikTok, Instagram, X URLs), bio for brands (300 char max), pricing (long-form and short-form video rates), **Post Publicly toggle** (see below).
-   - Go-live checklist: YouTube connected, bio written (min 50 chars), long video rate set, short video rate set
+   - **Analytics cards are platform-gated** — `YouTubeStats` renders only when `youtube_channel_id` is set; `TikTokStats` renders only when `tiktok_open_id` is set. If a creator connected both, both cards render stacked. If neither, a `NoPlatformCard` prompts them to go to `/apply`.
+   - YouTube card: subscribers, engagement rate, avg view rate, 30d engagement, sub growth (30d %+count), total videos, total views. Refresh via `POST /api/creator/refresh-stats`.
+   - TikTok card: avatar + display name, **Avg Engagement Rate**, **Engagement Rate (30D)**, **Avg Likes/Comments/Shares per View** (all percentages), followers, video count, total views, total likes. Refresh via `POST /api/creator/refresh-tiktok-stats` — uses stored `tiktok_refresh_token` → new access token → re-runs `fetchUserInfo` + `fetchVideoAggregate` → rewrites all `tiktok_*` columns.
+   - Profile setup form: bio for brands (300 char max), pricing (long-form and short-form video rates), **Post Publicly toggle**.
+   - Go-live checklist: **Platform connected (YouTube or TikTok)**, bio written (min 50 chars), long video rate set, short video rate set, profile saved.
    - "Go Live" button → `POST /api/creator/publish` sets `published: true`
 3. **Live state** (published):
    - Editable bio + Post Publicly toggle (both live-editable via `POST /api/creator/update-profile`)

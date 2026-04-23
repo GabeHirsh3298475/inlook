@@ -21,6 +21,7 @@ const isPublicRoute = createRouteMatcher([
   "/sitemap.xml",
   "/api/apply(.*)",
   "/api/auth(.*)",
+  "/api/tiktok(.*)",
   "/api/brands/apply",
   "/api/waitlist",
   "/api/cron(.*)",

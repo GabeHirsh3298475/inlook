@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { UserButton } from "@clerk/nextjs";
 import {
   Youtube,
+  Music2,
   Users,
   Eye,
   TrendingUp,
   TrendingDown,
   Film,
+  Heart,
   Clock,
   Handshake,
   BarChart3,
@@ -282,7 +284,11 @@ export function DashboardClient({
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[1.3fr_1fr]">
           <div className="space-y-6">
-            <YouTubeStats creator={creator} />
+            {creator.youtube_channel_id && <YouTubeStats creator={creator} />}
+            {creator.tiktok_open_id && <TikTokStats creator={creator} />}
+            {!creator.youtube_channel_id && !creator.tiktok_open_id && (
+              <NoPlatformCard />
+            )}
             <DealStats creator={creator} />
             <MessagesPreview
               conversations={conversations}
@@ -392,7 +398,11 @@ function LiveDashboard({
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[1.3fr_1fr]">
           <div className="space-y-6">
-            <YouTubeStats creator={creator} />
+            {creator.youtube_channel_id && <YouTubeStats creator={creator} />}
+            {creator.tiktok_open_id && <TikTokStats creator={creator} />}
+            {!creator.youtube_channel_id && !creator.tiktok_open_id && (
+              <NoPlatformCard />
+            )}
             <DealStats creator={creator} />
             <MessagesPreview
               conversations={conversations}
@@ -488,6 +498,16 @@ function LiveDashboard({
                 {creator.channel_url && (
                   <SocialRow label="YouTube" value={creator.channel_url} />
                 )}
+                {creator.tiktok_open_id && (
+                  <SocialRow
+                    label="TikTok"
+                    value={
+                      creator.tiktok_display_name
+                        ? `@${creator.tiktok_display_name}`
+                        : "Connected"
+                    }
+                  />
+                )}
                 {creator.tiktok_url && (
                   <SocialRow label="TikTok" value={creator.tiktok_url} link />
                 )}
@@ -575,32 +595,6 @@ function YouTubeStats({ creator }: { creator: CreatorRow }) {
       }
     } catch {}
     setRefreshing(false);
-  }
-
-  if (!creator.connected_at) {
-    return (
-      <div className="rounded-3xl border border-ink-800 bg-ink-900 p-7 shadow-card">
-        <div className="flex items-center gap-3">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-700 bg-ink-850 text-ink-200">
-            <Youtube className="h-4 w-4" strokeWidth={1.6} />
-          </span>
-          <h2 className="font-display text-xl font-medium tracking-tight text-ink-50">
-            YouTube not connected
-          </h2>
-        </div>
-        <p className="mt-4 font-sans text-[14px] leading-relaxed text-ink-300">
-          Connect your YouTube account to display verified stats on your
-          profile. You can do this from the{" "}
-          <a
-            href="/apply"
-            className="text-accent underline-offset-4 hover:underline"
-          >
-            apply page
-          </a>
-          .
-        </p>
-      </div>
-    );
   }
 
   const subGrowthPositive =
@@ -768,6 +762,212 @@ function YouTubeStats({ creator }: { creator: CreatorRow }) {
   );
 }
 
+function NoPlatformCard() {
+  return (
+    <div className="rounded-3xl border border-ink-800 bg-ink-900 p-7 shadow-card">
+      <h2 className="font-display text-xl font-medium tracking-tight text-ink-50">
+        No platform connected
+      </h2>
+      <p className="mt-4 font-sans text-[14px] leading-relaxed text-ink-300">
+        Connect YouTube or TikTok to display verified stats on your profile.
+        You can do this from the{" "}
+        <a
+          href="/apply"
+          className="text-accent underline-offset-4 hover:underline"
+        >
+          apply page
+        </a>
+        .
+      </p>
+    </div>
+  );
+}
+
+function TikTokStats({ creator }: { creator: CreatorRow }) {
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshed, setRefreshed] = useState(false);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    setRefreshed(false);
+    try {
+      const res = await fetch("/api/creator/refresh-tiktok-stats", {
+        method: "POST",
+      });
+      if (res.ok) {
+        setRefreshed(true);
+        if (typeof window !== "undefined") {
+          setTimeout(() => window.location.reload(), 600);
+        }
+      }
+    } catch {}
+    setRefreshing(false);
+  }
+
+  const views = creator.tiktok_total_views ?? 0;
+  const avgLikes =
+    views > 0 && creator.tiktok_likes_count != null
+      ? (creator.tiktok_likes_count / views) * 100
+      : null;
+  const avgComments =
+    views > 0 && creator.tiktok_total_comments != null
+      ? (creator.tiktok_total_comments / views) * 100
+      : null;
+  const avgShares =
+    views > 0 && creator.tiktok_total_shares != null
+      ? (creator.tiktok_total_shares / views) * 100
+      : null;
+
+  const engagementRows: { label: string; value: string }[] = [
+    {
+      label: "Avg. Engagement Rate",
+      value:
+        creator.tiktok_avg_engagement_rate != null
+          ? `${creator.tiktok_avg_engagement_rate.toFixed(1)}%`
+          : "—",
+    },
+    {
+      label: "Engagement Rate (30D)",
+      value:
+        creator.tiktok_engagement_rate_30d != null
+          ? `${creator.tiktok_engagement_rate_30d.toFixed(1)}%`
+          : "—",
+    },
+    {
+      label: "Avg. Likes / View",
+      value: avgLikes != null ? `${avgLikes.toFixed(2)}%` : "—",
+    },
+    {
+      label: "Avg. Comments / View",
+      value: avgComments != null ? `${avgComments.toFixed(2)}%` : "—",
+    },
+    {
+      label: "Avg. Shares / View",
+      value: avgShares != null ? `${avgShares.toFixed(2)}%` : "—",
+    },
+  ];
+
+  const gridStats: {
+    icon: typeof Users;
+    label: string;
+    value: string;
+  }[] = [
+    {
+      icon: Users,
+      label: "Followers",
+      value:
+        creator.tiktok_follower_count != null
+          ? creator.tiktok_follower_count.toLocaleString()
+          : "—",
+    },
+    {
+      icon: Film,
+      label: "Videos",
+      value:
+        creator.tiktok_video_count != null
+          ? creator.tiktok_video_count.toLocaleString()
+          : "—",
+    },
+    {
+      icon: Eye,
+      label: "Total Views",
+      value: views > 0 ? views.toLocaleString() : "—",
+    },
+    {
+      icon: Heart,
+      label: "Total Likes",
+      value:
+        creator.tiktok_likes_count != null
+          ? creator.tiktok_likes_count.toLocaleString()
+          : "—",
+    },
+  ];
+
+  return (
+    <div className="rounded-3xl border border-ink-800 bg-ink-900 shadow-card">
+      <div className="flex items-center gap-4 border-b border-ink-800 px-7 py-5">
+        {creator.tiktok_avatar_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={creator.tiktok_avatar_url}
+            alt=""
+            className="h-11 w-11 rounded-full ring-1 ring-accent/30"
+          />
+        ) : (
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent/20 text-accent">
+            <Music2 className="h-5 w-5" strokeWidth={1.6} />
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="truncate font-display text-lg font-medium text-ink-50">
+              {creator.tiktok_display_name ?? "TikTok"}
+            </p>
+            <VerifiedBadge />
+          </div>
+          {creator.tiktok_display_name && (
+            <p className="truncate font-mono text-[11px] uppercase tracking-[0.14em] text-ink-400">
+              TikTok
+            </p>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-ink-700 bg-ink-850 px-3 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-300 transition-colors hover:border-accent/40 hover:text-accent disabled:opacity-50"
+        >
+          <RefreshCw
+            className={`h-3 w-3 ${refreshing ? "animate-spin" : ""}`}
+            strokeWidth={1.8}
+          />
+          {refreshed ? "Synced" : refreshing ? "Syncing" : "Refresh"}
+        </button>
+      </div>
+      <div className="px-7 py-5">
+        <p className="eyebrow">TikTok Analytics</p>
+        <dl className="mt-4 space-y-2">
+          {engagementRows.map(({ label, value }) => (
+            <div
+              key={label}
+              className="flex items-baseline justify-between gap-4"
+            >
+              <dt className="font-sans text-sm text-ink-300">{label}:</dt>
+              <dd className="font-display text-base font-medium tracking-tight text-ink-50">
+                {value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {gridStats.map(({ icon: Icon, label, value }) => (
+            <div
+              key={label}
+              className="rounded-2xl border border-ink-800 bg-ink-950/40 p-4"
+            >
+              <div className="flex items-center gap-1.5">
+                <Icon className="h-3 w-3 text-ink-400" strokeWidth={1.6} />
+                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-400">
+                  {label}
+                </p>
+              </div>
+              <p className="mt-1 font-display text-lg font-medium tracking-tight text-ink-50">
+                {value}
+              </p>
+            </div>
+          ))}
+        </div>
+        {creator.tiktok_stats_last_updated && (
+          <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-400">
+            Last synced{" "}
+            <LocalDateTime iso={creator.tiktok_stats_last_updated} />
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function DealStats({ creator }: { creator: CreatorRow }) {
   const daysOnInlook = creator.connected_at
     ? Math.floor(
@@ -885,22 +1085,49 @@ function ProfileSetupForm({
           Social Links
         </p>
         <div className="mt-3 space-y-3">
-          <div>
-            <label
-              htmlFor="d-youtube"
-              className="mb-1.5 flex items-center gap-2 font-sans text-xs text-ink-300"
-            >
-              YouTube URL
-              <VerifiedBadge size="sm" />
-            </label>
-            <input
-              id="d-youtube"
-              type="text"
-              disabled
-              value={creator.channel_url}
-              className={`${inputCls} cursor-not-allowed opacity-50`}
-            />
-          </div>
+          {creator.youtube_channel_id && (
+            <div>
+              <label
+                htmlFor="d-youtube"
+                className="mb-1.5 flex items-center gap-2 font-sans text-xs text-ink-300"
+              >
+                YouTube URL
+                <VerifiedBadge size="sm" />
+              </label>
+              <input
+                id="d-youtube"
+                type="text"
+                disabled
+                value={
+                  creator.channel_url ??
+                  `https://youtube.com/channel/${creator.youtube_channel_id}`
+                }
+                className={`${inputCls} cursor-not-allowed opacity-50`}
+              />
+            </div>
+          )}
+          {creator.tiktok_open_id && (
+            <div>
+              <label
+                htmlFor="d-tiktok-verified"
+                className="mb-1.5 flex items-center gap-2 font-sans text-xs text-ink-300"
+              >
+                TikTok (verified)
+                <VerifiedBadge size="sm" />
+              </label>
+              <input
+                id="d-tiktok-verified"
+                type="text"
+                disabled
+                value={
+                  creator.tiktok_display_name
+                    ? `@${creator.tiktok_display_name}`
+                    : "TikTok connected"
+                }
+                className={`${inputCls} cursor-not-allowed opacity-50`}
+              />
+            </div>
+          )}
           <div>
             <label
               htmlFor="d-tiktok"
@@ -1121,7 +1348,10 @@ function GoLiveCard({
   onGoLive: () => void;
 }) {
   const checklist = [
-    { label: "YouTube connected", done: !!creator.connected_at },
+    {
+      label: "Platform connected (YouTube or TikTok)",
+      done: !!creator.youtube_channel_id || !!creator.tiktok_open_id,
+    },
     { label: "Bio written (min 50 chars)", done: hasBio },
     { label: "Long video rate set", done: hasLongPrice },
     { label: "Short video rate set", done: hasShortPrice },

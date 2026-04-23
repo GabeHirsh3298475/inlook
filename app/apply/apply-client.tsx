@@ -9,7 +9,7 @@ import {
   ChevronDown,
   Check,
   Youtube,
-  HelpCircle,
+  Music2,
   Users,
   Loader2,
 } from "lucide-react";
@@ -26,13 +26,6 @@ const NICHES = [
   "Lifestyle",
   "Other",
 ];
-const FOLLOWER_RANGES = [
-  "Under 5K",
-  "5K–25K",
-  "25K–100K",
-  "100K–500K",
-  "500K+",
-];
 
 const STORAGE_KEY = "inlook-apply-draft";
 
@@ -40,37 +33,46 @@ type FormState = {
   name: string;
   email: string;
   platform: string;
-  url: string;
   niche: string;
-  followers: string;
 };
 
-type ChannelStats = {
+type YouTubeChannelStats = {
   displayName: string;
   profilePicture: string | null;
   subscriberCount: number;
+};
+
+type TikTokStatus = {
+  connected: boolean;
+  displayName?: string | null;
+  username?: string | null;
+  avatarUrl?: string | null;
+  followerCount?: number | null;
 };
 
 export function ApplyClient() {
   const params = useSearchParams();
   const initialName = params.get("name") ?? "";
   const { data: session, status } = useSession();
-  const connected = status === "authenticated";
-  const isLoading = status === "loading";
+  const ytConnected = status === "authenticated";
+  const ytLoading = status === "loading";
 
   const [form, setForm] = useState<FormState>({
     name: initialName,
     email: "",
     platform: "",
-    url: "",
     niche: "",
-    followers: "",
   });
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const [syncing, setSyncing] = useState(false);
-  const [channelStats, setChannelStats] = useState<ChannelStats | null>(null);
+  const [ytStats, setYtStats] = useState<YouTubeChannelStats | null>(null);
   const syncedRef = useRef(false);
+
+  const [tiktok, setTiktok] = useState<TikTokStatus>({ connected: false });
+  const [tiktokLoading, setTiktokLoading] = useState(true);
 
   useEffect(() => {
     const saved = sessionStorage.getItem(STORAGE_KEY);
@@ -83,10 +85,26 @@ export function ApplyClient() {
   }, []);
 
   useEffect(() => {
-    if (!connected || !form.email || syncedRef.current) return;
-    syncedRef.current = true;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/tiktok/status", { cache: "no-store" });
+        const data = (await res.json()) as TikTokStatus;
+        if (!cancelled) setTiktok(data);
+      } catch {
+        if (!cancelled) setTiktok({ connected: false });
+      }
+      if (!cancelled) setTiktokLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-    async function syncYouTube() {
+  useEffect(() => {
+    if (!ytConnected || !form.email || syncedRef.current) return;
+    syncedRef.current = true;
+    (async () => {
       setSyncing(true);
       try {
         await fetch("/api/apply/save-youtube-tokens", {
@@ -94,49 +112,75 @@ export function ApplyClient() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: form.email }),
         });
-
         const res = await fetch("/api/apply/sync-youtube", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: form.email }),
         });
         const data = await res.json();
-        if (data.channel) {
-          setChannelStats(data.channel);
-        }
+        if (data.channel) setYtStats(data.channel);
       } catch {}
       setSyncing(false);
-    }
-
-    syncYouTube();
-  }, [connected, form.email]);
+    })();
+  }, [ytConnected, form.email]);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  function handleConnectYouTube() {
+  function persistDraft() {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(form));
+  }
+
+  function handleConnectYouTube() {
+    persistDraft();
     signIn("google", { callbackUrl: "/apply" });
   }
 
+  function handleConnectTikTok() {
+    persistDraft();
+    window.location.href = "/api/tiktok/start";
+  }
+
+  async function handleDisconnectTikTok() {
+    try {
+      await fetch("/api/tiktok/disconnect", { method: "POST" });
+    } catch {}
+    setTiktok({ connected: false });
+  }
+
+  const hasAnyConnection = ytConnected || tiktok.connected;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!connected) return;
+    if (!hasAnyConnection) return;
+    setSubmitError(null);
     setSubmitting(true);
     try {
-      await fetch("/api/apply", {
+      const res = await fetch("/api/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
-          youtube: {
-            name: session?.user?.name ?? null,
-            email: session?.user?.email ?? null,
-          },
+          youtube: ytConnected
+            ? {
+                name: session?.user?.name ?? null,
+                email: session?.user?.email ?? null,
+              }
+            : null,
         }),
       });
-    } catch {}
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setSubmitError(data.error ?? "Something went wrong. Try again.");
+        setSubmitting(false);
+        return;
+      }
+    } catch {
+      setSubmitError("Network error. Try again.");
+      setSubmitting(false);
+      return;
+    }
     setSubmitting(false);
     setSubmitted(true);
     sessionStorage.removeItem(STORAGE_KEY);
@@ -158,7 +202,7 @@ export function ApplyClient() {
                 <VerifiedBadge label="Submitted" size="md" />
               ) : (
                 <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-400">
-                  6 fields · 2 min
+                  4 fields · 2 min
                 </span>
               )}
             </header>
@@ -196,7 +240,6 @@ export function ApplyClient() {
                   initial={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onSubmit={handleSubmit}
-                  noValidate={false}
                   className="grid gap-5 p-7 sm:grid-cols-2 sm:p-8"
                 >
                   <Field label="Creator name" htmlFor="f-name" className="sm:col-span-1">
@@ -248,61 +291,56 @@ export function ApplyClient() {
                     />
                   </Field>
 
-                  <Field label="Channel / profile URL" htmlFor="f-url" className="sm:col-span-2">
-                    <input
-                      id="f-url"
-                      type="text"
-                      required
-                      autoComplete="url"
-                      value={form.url}
-                      onChange={(e) => update("url", e.target.value)}
-                      placeholder="youtube.com/@yourchannel"
-                      className={inputCls}
-                    />
-                  </Field>
-
-                  <Field
-                    label="Follower / subscriber count"
-                    htmlFor="f-followers"
-                    className="sm:col-span-1"
-                  >
-                    <SelectField
-                      id="f-followers"
-                      required
-                      value={form.followers}
-                      onChange={(v) => update("followers", v)}
-                      placeholder="Choose a range"
-                      options={FOLLOWER_RANGES}
-                    />
-                  </Field>
-
                   <div className="sm:col-span-2 mt-1 border-t border-ink-800 pt-6">
-                    <YouTubeConnect
-                      connected={connected}
-                      isLoading={isLoading}
-                      syncing={syncing}
-                      channelStats={channelStats}
-                      session={session}
-                      onConnect={handleConnectYouTube}
-                    />
+                    <div className="mb-4">
+                      <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-300">
+                        Connect at least one account
+                      </p>
+                      <p className="mt-1 font-sans text-xs text-ink-400">
+                        Connect YouTube, TikTok, or both. Follower counts are
+                        pulled automatically.
+                      </p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <YouTubeConnect
+                        connected={ytConnected}
+                        isLoading={ytLoading}
+                        syncing={syncing}
+                        channelStats={ytStats}
+                        session={session}
+                        onConnect={handleConnectYouTube}
+                      />
+                      <TikTokConnect
+                        status={tiktok}
+                        isLoading={tiktokLoading}
+                        onConnect={handleConnectTikTok}
+                        onDisconnect={handleDisconnectTikTok}
+                      />
+                    </div>
                   </div>
 
                   <div className="sm:col-span-2">
                     <button
                       type="submit"
-                      disabled={!connected || submitting}
+                      disabled={!hasAnyConnection || submitting}
                       className="btn-primary w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
                     >
-                      {submitting ? "Submitting\u2026" : "Submit application"}
+                      {submitting ? "Submitting…" : "Submit application"}
                       <ArrowRight className="h-4 w-4" strokeWidth={2} />
                     </button>
-                    {!connected ? (
+                    {!hasAnyConnection ? (
                       <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-400">
-                        Connect your YouTube account above to submit
+                        Connect YouTube or TikTok above to submit
                       </p>
                     ) : (
                       <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-400">
                         Required fields · We never share your email
+                      </p>
+                    )}
+                    {submitError && (
+                      <p className="mt-3 font-sans text-sm text-red-400">
+                        {submitError}
                       </p>
                     )}
                   </div>
@@ -327,168 +365,199 @@ function YouTubeConnect({
   connected: boolean;
   isLoading: boolean;
   syncing: boolean;
-  channelStats: ChannelStats | null;
+  channelStats: YouTubeChannelStats | null;
   session: ReturnType<typeof useSession>["data"];
   onConnect: () => void;
 }) {
   if (connected && syncing) {
     return (
-      <div>
-        <div className="flex items-center gap-4 rounded-2xl border border-accent/30 bg-accent/[0.06] px-5 py-4">
-          <span className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-accent/20 text-accent">
-            <Loader2 className="h-5 w-5 animate-spin" strokeWidth={1.6} />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="font-display text-base font-medium text-ink-50">
-              Syncing your channel...
-            </p>
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-300">
-              Pulling stats from YouTube
-            </p>
-          </div>
-        </div>
-      </div>
+      <ConnectedCard
+        icon={<Loader2 className="h-5 w-5 animate-spin" strokeWidth={1.6} />}
+        title="Syncing your channel..."
+        subtitle="Pulling stats from YouTube"
+      />
     );
   }
-
   if (connected && channelStats) {
     return (
-      <div>
-        <div className="flex items-center gap-4 rounded-2xl border border-accent/30 bg-accent/[0.06] px-5 py-4">
-          {channelStats.profilePicture ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={channelStats.profilePicture}
-              alt=""
-              className="h-11 w-11 flex-none rounded-full ring-1 ring-accent/30"
-            />
-          ) : (
-            <span className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-accent/20 text-accent">
-              <Youtube className="h-5 w-5" strokeWidth={1.6} />
-            </span>
-          )}
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-display text-base font-medium text-ink-50">
-              {channelStats.displayName}
-            </p>
-            <div className="flex items-center gap-1.5">
-              <Users className="h-3 w-3 text-ink-400" strokeWidth={1.6} />
-              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-300">
-                {channelStats.subscriberCount.toLocaleString()} subscribers
-              </p>
-            </div>
-          </div>
-          <span className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-full bg-accent text-ink-950">
-            <Check className="h-4 w-4" strokeWidth={2.5} />
-          </span>
-        </div>
-        <p className="mt-4 font-sans text-[14px] leading-relaxed text-ink-200">
-          YouTube connected — your stats have been verified and saved.
-        </p>
-        <button
-          type="button"
-          onClick={() => signOut({ redirect: false })}
-          className="mt-4 inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-300 transition-colors duration-200 hover:text-accent"
-        >
-          Disconnect account
-        </button>
-      </div>
+      <ConnectedCard
+        imageUrl={channelStats.profilePicture ?? undefined}
+        fallbackIcon={<Youtube className="h-5 w-5" strokeWidth={1.6} />}
+        title={channelStats.displayName}
+        subtitleLeft={<Users className="h-3 w-3 text-ink-400" strokeWidth={1.6} />}
+        subtitle={`${channelStats.subscriberCount.toLocaleString()} subscribers`}
+        onDisconnect={() => signOut({ redirect: false })}
+      />
     );
   }
-
   if (connected) {
     return (
-      <div>
-        <div className="flex items-center gap-4 rounded-2xl border border-accent/30 bg-accent/[0.06] px-5 py-4">
-          <span className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-accent/20 text-accent">
-            <Youtube className="h-5 w-5" strokeWidth={1.6} />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-display text-base font-medium text-ink-50">
-              {session?.user?.name ?? "YouTube account"}
-            </p>
-            <p className="truncate font-mono text-[11px] uppercase tracking-[0.14em] text-ink-300">
-              {session?.user?.email ?? "Connected"}
-            </p>
-          </div>
-          <span className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-full bg-accent text-ink-950">
-            <Check className="h-4 w-4" strokeWidth={2.5} />
-          </span>
-        </div>
-        <p className="mt-4 font-sans text-[14px] leading-relaxed text-ink-200">
-          YouTube connected — your stats will be verified when your application
-          is reviewed.
-        </p>
-        <button
-          type="button"
-          onClick={() => signOut({ redirect: false })}
-          className="mt-4 inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-300 transition-colors duration-200 hover:text-accent"
-        >
-          Disconnect account
-        </button>
-      </div>
+      <ConnectedCard
+        fallbackIcon={<Youtube className="h-5 w-5" strokeWidth={1.6} />}
+        title={session?.user?.name ?? "YouTube account"}
+        subtitle={session?.user?.email ?? "Connected"}
+        onDisconnect={() => signOut({ redirect: false })}
+      />
     );
   }
+  return (
+    <DisconnectedCard
+      icon={<Youtube className="h-4 w-4" strokeWidth={1.6} />}
+      label="Connect YouTube"
+      description="Read-only access — we verify views, subscribers, and engagement."
+      onConnect={onConnect}
+      disabled={isLoading}
+    />
+  );
+}
 
+function TikTokConnect({
+  status,
+  isLoading,
+  onConnect,
+  onDisconnect,
+}: {
+  status: TikTokStatus;
+  isLoading: boolean;
+  onConnect: () => void;
+  onDisconnect: () => void;
+}) {
+  if (isLoading) {
+    return (
+      <ConnectedCard
+        icon={<Loader2 className="h-5 w-5 animate-spin" strokeWidth={1.6} />}
+        title="Checking TikTok status..."
+        subtitle=""
+      />
+    );
+  }
+  if (status.connected) {
+    return (
+      <ConnectedCard
+        imageUrl={status.avatarUrl ?? undefined}
+        fallbackIcon={<Music2 className="h-5 w-5" strokeWidth={1.6} />}
+        title={status.displayName ?? status.username ?? "TikTok account"}
+        subtitleLeft={<Users className="h-3 w-3 text-ink-400" strokeWidth={1.6} />}
+        subtitle={
+          status.followerCount != null
+            ? `${status.followerCount.toLocaleString()} followers`
+            : status.username
+            ? `@${status.username}`
+            : "Connected"
+        }
+        onDisconnect={onDisconnect}
+      />
+    );
+  }
+  return (
+    <DisconnectedCard
+      icon={<Music2 className="h-4 w-4" strokeWidth={1.6} />}
+      label="Connect TikTok"
+      description="Read-only access — we verify followers and engagement via Login Kit."
+      onConnect={onConnect}
+    />
+  );
+}
+
+function ConnectedCard({
+  icon,
+  imageUrl,
+  fallbackIcon,
+  title,
+  subtitle,
+  subtitleLeft,
+  onDisconnect,
+}: {
+  icon?: React.ReactNode;
+  imageUrl?: string;
+  fallbackIcon?: React.ReactNode;
+  title: string;
+  subtitle?: string;
+  subtitleLeft?: React.ReactNode;
+  onDisconnect?: () => void;
+}) {
   return (
     <div>
-      <p className="mb-4 font-sans text-[14px] leading-relaxed text-ink-200">
-        Don&apos;t have a YouTube channel?{" "}
-        <a href="/waitlist" className="text-accent hover:underline">
-          Join the waitlist
-        </a>
-        .
-      </p>
-      <div className="flex items-center gap-3">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-700 bg-ink-850 text-ink-200">
-          <Youtube className="h-4 w-4" strokeWidth={1.6} />
-        </span>
-        <p className="flex-1 font-display text-lg font-medium leading-tight text-ink-50">
-          Connect your YouTube account
-        </p>
-        <span className="group relative">
-          <HelpCircle className="h-4 w-4 cursor-help text-ink-400" strokeWidth={1.6} />
-          <span className="pointer-events-none absolute bottom-full right-0 mb-2 w-56 rounded-lg border border-ink-700 bg-ink-850 px-3 py-2 font-sans text-xs leading-relaxed text-ink-200 opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
-            Waiting to get approved for TikTok and Instagram.
+      <div className="flex items-center gap-4 rounded-2xl border border-accent/30 bg-accent/[0.06] px-5 py-4">
+        {imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imageUrl}
+            alt=""
+            className="h-11 w-11 flex-none rounded-full ring-1 ring-accent/30"
+          />
+        ) : (
+          <span className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-accent/20 text-accent">
+            {icon ?? fallbackIcon}
           </span>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-display text-base font-medium text-ink-50">
+            {title}
+          </p>
+          {subtitle ? (
+            <div className="flex items-center gap-1.5">
+              {subtitleLeft}
+              <p className="truncate font-mono text-[11px] uppercase tracking-[0.14em] text-ink-300">
+                {subtitle}
+              </p>
+            </div>
+          ) : null}
+        </div>
+        <span className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-full bg-accent text-ink-950">
+          <Check className="h-4 w-4" strokeWidth={2.5} />
         </span>
       </div>
-      <p className="mt-4 font-sans text-[14px] leading-relaxed text-ink-300">
-        Connect your Google account to let us read your channel&apos;s public
-        stats and verified analytics.
-      </p>
+      {onDisconnect && (
+        <button
+          type="button"
+          onClick={onDisconnect}
+          className="mt-3 inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-300 transition-colors hover:text-accent"
+        >
+          Disconnect
+        </button>
+      )}
+    </div>
+  );
+}
+
+function DisconnectedCard({
+  icon,
+  label,
+  description,
+  onConnect,
+  disabled,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  description: string;
+  onConnect: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-ink-800 bg-ink-950/40 p-5">
+      <div className="flex items-center gap-3">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-ink-700 bg-ink-850 text-ink-200">
+          {icon}
+        </span>
+        <div className="flex-1">
+          <p className="font-display text-base font-medium leading-tight text-ink-50">
+            {label}
+          </p>
+          <p className="mt-1 font-sans text-xs leading-relaxed text-ink-300">
+            {description}
+          </p>
+        </div>
+      </div>
       <button
         type="button"
         onClick={onConnect}
-        disabled={isLoading}
-        className="btn-primary mt-5 w-full disabled:cursor-wait disabled:opacity-60"
+        disabled={disabled}
+        className="btn-primary mt-4 w-full disabled:cursor-wait disabled:opacity-60"
       >
-        <Youtube className="h-4 w-4" strokeWidth={1.8} />
-        {isLoading ? "Loading\u2026" : "Connect YouTube Account"}
+        {icon}
+        {disabled ? "Loading…" : label}
       </button>
-      <p className="mt-3 text-center font-sans text-[11px] leading-relaxed text-ink-400">
-        By connecting YouTube, you agree to our{" "}
-        <a href="/terms" className="text-accent hover:underline">
-          Terms of Service
-        </a>{" "}
-        and{" "}
-        <a href="/privacy" className="text-accent hover:underline">
-          Privacy Policy
-        </a>
-        .
-      </p>
-      <ul className="mt-5 space-y-2 border-t border-ink-800 pt-4 font-sans text-sm text-ink-200">
-        {[
-          "Read-only access \u00b7 we never post on your behalf",
-          "Revoke any time from your Google account",
-          "Only used to verify views, subscribers, and engagement",
-        ].map((item) => (
-          <li key={item} className="flex items-start gap-2">
-            <span className="mt-[8px] h-1 w-1 flex-none rounded-full bg-accent" />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

@@ -8,10 +8,10 @@ import { FilterBar, type Filters } from "@/components/filter-bar";
 export type PublicCreator = {
   id: string;
   name: string;
-  niche: string;
+  niche: string | null;
   subscriberCount: number;
   profilePictureUrl: string | null;
-  channelUrl: string;
+  channelUrl: string | null;
   tiktokUrl: string | null;
   tiktokFollowerCount: number | null;
   instagramUrl: string | null;
@@ -45,7 +45,8 @@ export function CreatorsClient({
       : null;
 
     return creators.filter((c) => {
-      if (filters.niches.size > 0 && !filters.niches.has(c.niche)) return false;
+      if (filters.niches.size > 0 && (!c.niche || !filters.niches.has(c.niche)))
+        return false;
 
       if (filters.platforms.size > 0) {
         const has: Record<Platform, boolean> = {
