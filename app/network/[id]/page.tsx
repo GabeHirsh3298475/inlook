@@ -169,21 +169,35 @@ export default async function CreatorProfilePage({
                 {formatFollowers(totalFollowers)}
               </p>
               {platforms.length > 0 && (
-                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-ink-300">
-                  {platforms.map(({ platform, url, count }) => (
-                    <a
-                      key={platform}
-                      href={normalizeUrl(url)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Open ${name}'s ${platform} profile`}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-ink-700 bg-ink-850 px-2.5 py-1 font-mono text-[11px] text-ink-200 transition-colors hover:border-accent/40 hover:text-accent"
-                      title={platform}
-                    >
-                      <PlatformIcon platform={platform} className="h-4 w-4" />
-                      <span>{formatFollowers(count)}</span>
-                    </a>
-                  ))}
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  {platforms.map(({ platform, url, count }) => {
+                    const role =
+                      platform === "YouTube" ? "Subscribers" : "Followers";
+                    return (
+                      <a
+                        key={platform}
+                        href={normalizeUrl(url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Open ${name}'s ${platform} profile (${formatFollowers(count)} ${role})`}
+                        className="group/stat inline-flex items-center gap-3 rounded-2xl border border-ink-700 bg-ink-950/40 px-4 py-2.5 transition-colors hover:border-accent/40"
+                        title={platform}
+                      >
+                        <PlatformIcon
+                          platform={platform}
+                          className="h-5 w-5 text-ink-200 transition-colors group-hover/stat:text-accent"
+                        />
+                        <span className="flex flex-col leading-tight">
+                          <span className="font-display text-lg font-medium tracking-tight text-ink-50">
+                            {formatFollowers(count)}
+                          </span>
+                          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-400">
+                            {role}
+                          </span>
+                        </span>
+                      </a>
+                    );
+                  })}
                 </div>
               )}
             </div>

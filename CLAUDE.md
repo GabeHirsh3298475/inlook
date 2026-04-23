@@ -1,6 +1,8 @@
 # Inlook
 
-Brand-creator marketplace that connects small brands with verified YouTube creators for product launch sponsorships. Creators apply, connect YouTube for verified analytics, and go live on the network. Brands browse verified creator profiles with real engagement data.
+Brand-creator marketplace that connects small brands with verified creators (YouTube and/or TikTok) for product launch sponsorships. Creators apply, connect YouTube and/or TikTok for verified analytics, and go live on the network. Brands browse verified creator profiles with real engagement data.
+
+> **Active branch: `all-apis`.** All multi-platform (TikTok + YouTube) work — TikTok OAuth/PKCE, `primary_platform` routing, `/network` marketplace split, TikTok stats refresh, avatar routing by primary platform — lives on this branch. `main` still reflects the YouTube-only world. Assume work continues on `all-apis` unless told otherwise.
 
 ## Tech Stack
 
@@ -25,9 +27,10 @@ app/
   robots.ts             # robots.txt (disallow /api/, /dashboard, /messages, /sign-in*, /sign-up, /no-signup)
   providers.tsx         # Client-side providers wrapper
   apply/                # Creator application form (3 fields: name, email, niche) with YouTube + TikTok OAuth (at least one required). Primary platform is derived from which account(s) the creator connects.
-  brands/               # Brand-facing page (includes brand waitlist form)
+  brands/               # Brand-facing pitch page (includes brand waitlist form)
     [id]/               # Protected brand profile (creator/brand/admin only — shows business_name/bio/product_url/social_url, NEVER email)
-  creators/             # Public creator network browser (server component fetches live creators from Supabase)
+  creators/             # Public "For creators" pitch page (marketing copy + apply CTA). NOT the marketplace.
+  network/              # Public creator marketplace browser (server component fetches live creators from Supabase). This is what used to live at /creators.
     [id]/               # Individual creator profile page (basic info / about / price / analytics)
   dashboard/            # Protected — creator dashboard, brand dashboard, or admin panel (role-based)
   messages/             # Protected messaging UI (brand + creator). Polling thread view + list + agreement buttons in header (brand → "Offer long/short", creator → "Accept long/short" only after brand has offered)
@@ -122,7 +125,7 @@ types/
 3. **Live state** (published):
    - Editable bio + Post Publicly toggle (both live-editable via `POST /api/creator/update-profile`)
    - Stats display, pricing display, social links display
-   - Profile visible on `/creators` network page and `/creators/[id]` profile page
+   - Profile visible on `/network` marketplace and `/network/[id]` profile page
 
 ### 4b. Brand Application / Sign-In / Dashboard Flow
 
@@ -133,26 +136,27 @@ types/
 2. Admin verifies the brand via the admin panel's Brands section (see Flow 2).
 3. Brand receives welcome email → Clerk invitation flow (identical to creator) with `publicMetadata: { role: "brand" }` → lands on `/dashboard`
 4. `/dashboard` server component: when `role === "brand"`, fetches brand row by `clerk_user_id`, with an email-based fallback that sets `clerk_user_id` on first sign-in (same pattern as creators). Same fallback also syncs the brand's `business_name` back to Clerk as `firstName`.
-5. Brand dashboard (`brand-dashboard-client.tsx`) shows business name, email, product link, and social media URL (read-only, "Contact support to update" on product link + social URL). It also has an editable **About** section backed by `brands.bio`, saved via `POST /api/brand/update-bio` (max 500 chars). The bio is optional — it does not gate anything on the brand. Includes a "Browse the creator network" link to `/creators`.
+5. Brand dashboard (`brand-dashboard-client.tsx`) shows business name, email, product link, and social media URL (read-only, "Contact support to update" on product link + social URL). It also has an editable **About** section backed by `brands.bio`, saved via `POST /api/brand/update-bio` (max 500 chars). The bio is optional — it does not gate anything on the brand. Includes a "Browse the creator network" link to `/network`.
 
-### 5. Creator Network (`/creators`) + Profile (`/creators/[id]`)
+### 5. Creator Network (`/network`) + Profile (`/network/[id]`)
 
-- `/creators` is a **server component** that fetches from Supabase where `approved = true AND published = true`. No placeholder data.
+- `/network` is a **server component** that fetches from Supabase where `approved = true AND published = true AND admin_hidden = false`. No placeholder data. (`/creators` is a separate static pitch page — don't confuse the two.)
 - When no creators are live: renders "Inlook is still in beta testing. Creators coming soon..."
-- **Role-based data gating**: before sending data to the client, the server checks whether the viewer's role is `"brand"` or `"admin"` (both get full access). Everyone else gets a `PublicCreator` shape with `avg_view_rate` / `avg_engagement_rate` stripped to `null`, and (if `post_publicly = true`) `price_long_video` / `price_short_video` stripped to `null`. Stripped fields are never sent to the client, so inspect-element can't unblur them.
+- **Role-based data gating** (in `app/network/page.tsx`'s `toPublicCreator`): before sending data to the client, the server checks whether the viewer is a brand, admin, or the creator themselves (`isSelf` via `clerk_user_id` match) — all three get full access. Everyone else gets a `PublicCreator` shape with `avg_view_rate`, `avg_engagement_rate`, `engagement_rate_30d`, `tiktok_avg_engagement_rate`, and `tiktokAvgLikesPerView` stripped to `null`, and (if `post_publicly = true`) `price_long_video` / `price_short_video` stripped to `null`. Stripped fields are never sent to the client, so inspect-element can't unblur them.
+- **Avatar routing** (card + full profile): the rendered avatar follows `primary_platform`. TikTok-primary creators show `tiktok_avatar_url` (falling back to `profile_picture_url`); everyone else shows `profile_picture_url` (falling back to `tiktok_avatar_url`). Both `components/creator-card.tsx` and `app/network/[id]/page.tsx` use this same fallback chain.
 - Card layout (sections separated by dividers):
   1. Profile picture + name + niche chip (top-right); then followers + social icons row for connected platforms (YouTube/TikTok).
   2. **Analytics — primary-platform-driven**: if `primary_platform === "youtube"` shows Avg. View Rate + Avg. Engagement Rate; if `"tiktok"` shows TikTok **Avg. Engagement Rate** + **Avg. Likes / View** (the same two metrics as the dashboard's TikTok card); if `"both"` stacks YouTube and TikTok rows with sub-labels. Blurred for non-brands.
   3. Price section: centered "Price" label with Long/Short columns. Blurred when `post_publicly = true` and viewer is not a brand.
   4. "View profile" link → `/network/[id]`.
-- `/network/[id]` renders Basic Information + Price + About, then **one Analytics section per connected platform**, ordered primary-first. A creator who only connected TikTok shows only the TikTok Analytics section; one who connected both gets the primary first and the other stacked beneath. Each section carries its own `VerifiedBadge`.
+- `/network/[id]` renders Basic Information + Price + About, then **one Analytics section per connected platform**, ordered primary-first. A creator who only connected TikTok shows only the TikTok Analytics section; one who connected both gets the primary first and the other stacked beneath. Each section carries its own `VerifiedBadge`. The header avatar follows the same primary-platform fallback chain as the card.
 - Filters: Niche (matches /apply options exactly), Platform (YouTube/TikTok/Instagram/X — platform filter checks which URLs the creator has linked), Followers (Under 10K, 10K–50K, 50K–100K, 100K–250K, 250K+). No Price filter.
 
 ### 5b. Admin visibility override (`admin_hidden`)
 
 - Column: `admin_hidden boolean default false` on `creators`.
-- Admin panel's Approved tab shows a visibility switch per row. Flipping it OFF sets `admin_hidden = true` via `POST /api/admin/toggle-visibility`, which immediately removes the creator from `/creators` and `/creators/[id]` (both queries filter `admin_hidden = false`).
-- Live rows in the admin panel (approved + published + not hidden) also show a "View profile" button linking to `/creators/[id]` in a new tab.
+- Admin panel's Approved tab shows a visibility switch per row. Flipping it OFF sets `admin_hidden = true` via `POST /api/admin/toggle-visibility`, which immediately removes the creator from `/network` and `/network/[id]` (both queries filter `admin_hidden = false`).
+- Live rows in the admin panel (approved + published + not hidden) also show a "View profile" button linking to `/network/[id]` in a new tab.
 - When `admin_hidden = true`, the creator's dashboard replaces the green "Live on Network" pill with a yellow "Not Live" pill; hover shows "Contact support for further help". The creator cannot unhide themselves — this is an admin-only override.
 - The "Live on Network" stat card in the admin panel counts only creators that are `published = true AND admin_hidden = false`.
 
@@ -160,7 +164,7 @@ types/
 
 **Conversations:** Only brands can start a conversation via `POST /api/messages/start` — idempotent upsert on `(brand_id, creator_id)`, so a brand clicking "Message" on the same creator twice returns the existing conversation. Creators never start conversations.
 
-**Message buttons:** `components/message-button.tsx` renders on the creator card (`/creators` network) and the individual creator profile (`/creators/[id]`) under the Price section. If the viewer is not a signed-in brand, the button is disabled with tooltip "Sign in as a brand to message". Hidden entirely when `isSelf`.
+**Message buttons:** `components/message-button.tsx` renders on the creator card (`/network`) and the individual creator profile (`/network/[id]`) under the Price section. If the viewer is not a signed-in brand, the button is disabled with tooltip "Sign in as a brand to message". Hidden entirely when `isSelf`.
 
 **Sending messages:** Both brand and creator send via `POST /api/messages/send`. Client polls `GET /api/messages/[id]` every 5s (`POLL_MS`). Send route auth checks that the caller is a participant (derives brand_id/creator_id from `clerk_user_id`, never trusts request body). Max message length: 2000 chars. Conversation row updates `last_message_at` + `last_message_preview` (200 char truncate).
 
@@ -181,7 +185,7 @@ types/
 ### 6. Post Publicly toggle
 
 - Column: `post_publicly boolean default false` on `creators`.
-- Creator controls whether their prices are visible to non-brand visitors. When `true`: prices are blurred on `/creators` and `/creators/[id]`. When `false`: prices are visible to all.
+- Creator controls whether their prices are visible to non-brand visitors. When `true`: prices are blurred on `/network` and `/network/[id]`. When `false`: prices are visible to all.
 - The toggle is editable in both draft and live dashboard states. In live state it writes immediately via `POST /api/creator/update-profile`.
 
 ### 5. Emails
@@ -228,7 +232,7 @@ All branded dark theme with `#d4ff3a` accent:
 - Two separate auth systems coexist: **Clerk** (user accounts, invitations, role management — roles: `admin` / `creator` / `brand`) and **NextAuth** (YouTube OAuth only, for read-only channel stats)
 - `sessionStorage` persists form data across OAuth redirect on `/apply`
 - Clerk middleware protects all routes except public pages and API endpoints listed in `middleware.ts`
-- Public routes: `/`, `/apply`, `/creators(.*)` (network list AND individual profile pages), `/brands`, `/join`, `/waitlist`, `/privacy`, `/terms`, `/pricing`, `/sign-in(.*)`, `/sign-up(.*)`, `/sign-in-token(.*)`, `/no-signup`, `/opengraph-image(.*)`, `/twitter-image(.*)`, `/icon(.*)`, `/robots.txt`, `/sitemap.xml`, `/api/apply(.*)`, `/api/auth(.*)`, `/api/brands/apply`, `/api/waitlist`, `/api/cron(.*)`
+- Public routes: `/`, `/apply`, `/network(.*)` (marketplace list AND individual profile pages), `/creators` (pitch page), `/brands`, `/join`, `/waitlist`, `/privacy`, `/terms`, `/pricing`, `/sign-in(.*)`, `/sign-up(.*)`, `/sign-in-token(.*)`, `/no-signup`, `/opengraph-image(.*)`, `/twitter-image(.*)`, `/icon(.*)`, `/robots.txt`, `/sitemap.xml`, `/api/apply(.*)`, `/api/auth(.*)`, `/api/brands/apply`, `/api/waitlist`, `/api/cron(.*)`, `/api/tiktok(.*)` (start, callback, status, disconnect)
 - **Critical:** `/opengraph-image(.*)` MUST be public or Clerk middleware 404s the OG image route, breaking iMessage/Twitter/Slack link previews. If you add new file-convention metadata routes (e.g. `apple-icon.tsx`), add them to the public matcher too.
 - **Days on Inlook** counter starts at 1 (first day) using `Math.floor(diff / dayMs) + 1`
 
@@ -436,7 +440,7 @@ ALTER TABLE creators ADD COLUMN IF NOT EXISTS admin_hidden boolean DEFAULT false
 ## Legal / consent
 
 - `/privacy`, `/terms`, and `/pricing` are static pages in `app/privacy/page.tsx`, `app/terms/page.tsx`, and `app/pricing/page.tsx`. All three are public routes. Footer "Company" column links to all three (Pricing between About and Privacy).
-- Pricing page surfaces the commercial model: **$0 for brands / 15% platform fee for creators (Stripe Connect auto-split, 85% creator / 15% Inlook).** Stripe payment-processing fees are absorbed into Inlook's 15% — creators see 85% of gross deal value with no further deductions. `/creators` and `/brands` each surface a condensed pricing block linking to `/pricing`. TOS Section 9 reflects this fee structure and links to the Stripe Connected Account Agreement.
+- Pricing page surfaces the commercial model: **$0 for brands / 15% platform fee for creators (Stripe Connect auto-split, 85% creator / 15% Inlook).** Stripe payment-processing fees are absorbed into Inlook's 15% — creators see 85% of gross deal value with no further deductions. `/creators` (pitch page) and `/brands` each surface a condensed pricing block linking to `/pricing`. TOS Section 9 reflects this fee structure and links to the Stripe Connected Account Agreement.
 - Use **"platform fee"**, not "commission" — commission implies agency/talent-manager relationship (triggers CA/NY talent-agency licensing); platform fee is the correct marketplace term and matches Stripe Connect's `application_fee_amount`.
 - Clickwrap-style consent is enforced at three entry points: creator apply (`Connect YouTube Account` button, in `app/apply/apply-client.tsx`), brand apply (`Request access` button, in `components/brand-application-form.tsx`), and waitlist (`Join the waitlist` button, in `app/waitlist/waitlist-client.tsx`). Each has a short line beneath the CTA: "By [action], you agree to our Terms of Service and Privacy Policy."
 - TOS Section 5 requires creators to disclose sponsored content (e.g., `#ad`) per FTC Endorsement Guides. Creators indemnify Inlook for non-disclosure claims (Section 14).

@@ -82,19 +82,29 @@ export function CreatorCard({
           {formatFollowers(totalFollowers)}
         </p>
         {platforms.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-ink-300">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             {platforms.map(({ platform, url, count }) => (
               <a
                 key={platform}
                 href={normalizeUrl(url)}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={`Open ${creator.name}'s ${platform} profile`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-ink-700 bg-ink-850 px-2.5 py-1 font-mono text-[11px] text-ink-200 transition-colors hover:border-accent/40 hover:text-accent"
+                aria-label={`Open ${creator.name}'s ${platform} profile (${formatFollowers(count)} ${followerRole(platform)})`}
+                className="group/stat inline-flex items-center gap-2 rounded-xl border border-ink-700 bg-ink-850 px-3 py-1.5 transition-colors hover:border-accent/40"
                 title={platform}
               >
-                <PlatformIcon platform={platform} className="h-3.5 w-3.5" />
-                <span>{formatFollowers(count)}</span>
+                <PlatformIcon
+                  platform={platform}
+                  className="h-4 w-4 text-ink-200 transition-colors group-hover/stat:text-accent"
+                />
+                <span className="flex flex-col leading-tight">
+                  <span className="font-display text-sm font-medium text-ink-50">
+                    {formatFollowers(count)}
+                  </span>
+                  <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink-400">
+                    {followerRole(platform)}
+                  </span>
+                </span>
               </a>
             ))}
           </div>
@@ -539,4 +549,8 @@ function normalizeUrl(url: string): string {
   if (!url) return "#";
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
   return `https://${url}`;
+}
+
+function followerRole(platform: "YouTube" | "TikTok" | "Instagram"): string {
+  return platform === "YouTube" ? "Subscribers" : "Followers";
 }
