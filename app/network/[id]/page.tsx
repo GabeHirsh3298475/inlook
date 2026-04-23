@@ -147,7 +147,11 @@ export default async function CreatorProfilePage({
             <p className="eyebrow">Basic Information</p>
             <div className="mt-5 flex items-center gap-4">
               <Avatar
-                imageUrl={creator.profile_picture_url}
+                imageUrl={
+                  primaryPlatform === "tiktok"
+                    ? creator.tiktok_avatar_url ?? creator.profile_picture_url
+                    : creator.profile_picture_url ?? creator.tiktok_avatar_url
+                }
                 name={name}
               />
               <div className="min-w-0 flex-1">

@@ -62,7 +62,11 @@ export function CreatorCard({
       <header className="flex items-start justify-between gap-3 p-6 pb-4">
         <div className="flex items-center gap-3">
           <Avatar
-            imageUrl={creator.profilePictureUrl}
+            imageUrl={
+              creator.primaryPlatform === "tiktok"
+                ? creator.tiktokProfilePictureUrl ?? creator.profilePictureUrl
+                : creator.profilePictureUrl ?? creator.tiktokProfilePictureUrl
+            }
             name={creator.name}
           />
           <h3 className="font-display text-lg font-medium leading-tight tracking-tight text-ink-50">
