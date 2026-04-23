@@ -5,7 +5,36 @@ export const alt = "Inlook - Creator marketplace with verified engagement";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+async function loadGoogleFont(family: string, weight: number, italic: boolean) {
+  const url = `https://fonts.googleapis.com/css2?family=${family.replace(
+    / /g,
+    "+"
+  )}:ital,wght@${italic ? 1 : 0},${weight}&display=swap`;
+  const css = await fetch(url, {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36",
+    },
+  }).then((r) => r.text());
+  const match = css.match(/src:\s*url\(([^)]+)\)\s*format\(['"]?(woff2|truetype|opentype)['"]?\)/);
+  if (!match) throw new Error(`font not found: ${family}`);
+  const fontRes = await fetch(match[1]);
+  if (!fontRes.ok) throw new Error(`font fetch failed: ${fontRes.status}`);
+  return fontRes.arrayBuffer();
+}
+
 export default async function OpengraphImage() {
+  const [fraunces, frauncesBold] = await Promise.all([
+    loadGoogleFont("Fraunces", 500, true),
+    loadGoogleFont("Fraunces", 700, true),
+  ]);
+
+  const logoSvg =
+    "data:image/svg+xml;utf8," +
+    encodeURIComponent(
+      `<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 28 28' fill='none'><circle cx='14' cy='14' r='12.5' stroke='#4A90FF' stroke-width='1.2' opacity='0.35'/><path d='M8 13.5l4 4 8-8' stroke='#4A90FF' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg>`
+    );
+
   return new ImageResponse(
     (
       <div
@@ -15,48 +44,31 @@ export default async function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          padding: "80px",
+          padding: "72px 80px",
           backgroundColor: "#0a0a0b",
           backgroundImage:
             "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(74,144,255,0.22), rgba(10,10,11,1) 60%)",
           color: "#f5f5f5",
-          fontFamily: "sans-serif",
+          fontFamily: "Fraunces",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           {/* eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text */}
-          <img
-            width={64}
-            height={64}
-            src={
-              "data:image/svg+xml;utf8," +
-              encodeURIComponent(
-                `<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='#4A90FF'/><path d='M18 33 l10 10 l18 -22' fill='none' stroke='#0a0a0b' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/></svg>`
-              )
-            }
-          />
+          <img width={96} height={96} src={logoSvg} />
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              gap: 14,
-              fontSize: 48,
-              fontWeight: 700,
+              alignItems: "baseline",
+              gap: 18,
+              fontSize: 76,
+              fontStyle: "italic",
+              fontWeight: 500,
               letterSpacing: "-0.02em",
+              lineHeight: 1,
             }}
           >
             <span style={{ color: "#f5f5f5" }}>Inlook</span>
-            <span
-              style={{
-                color: "#0a0a0b",
-                backgroundColor: "#d4ff3a",
-                padding: "6px 16px",
-                borderRadius: 999,
-                fontSize: 28,
-              }}
-            >
-              Beta
-            </span>
+            <span style={{ color: "#d4ff3a", fontWeight: 700 }}>Beta</span>
           </div>
         </div>
 
@@ -64,12 +76,13 @@ export default async function OpengraphImage() {
           <div
             style={{
               display: "flex",
-              fontSize: 92,
+              fontSize: 96,
               lineHeight: 1.05,
-              fontWeight: 700,
+              fontWeight: 500,
               letterSpacing: "-0.03em",
               color: "#ffffff",
               maxWidth: 1000,
+              fontFamily: "Fraunces",
             }}
           >
             Connect your brand with creators
@@ -81,17 +94,41 @@ export default async function OpengraphImage() {
               lineHeight: 1.35,
               color: "#b8b8bd",
               maxWidth: 1020,
+              fontStyle: "italic",
             }}
           >
             Creator marketplace with verified engagement data, clear pricing,
             and niche-specific matching.
           </div>
-          <div style={{ display: "flex", fontSize: 22, color: "#8a8a90" }}>
+          <div
+            style={{
+              display: "flex",
+              fontSize: 22,
+              color: "#8a8a90",
+              fontStyle: "italic",
+            }}
+          >
             inlookdeals.com
           </div>
         </div>
       </div>
     ),
-    { ...size }
+    {
+      ...size,
+      fonts: [
+        {
+          name: "Fraunces",
+          data: fraunces,
+          weight: 500,
+          style: "italic",
+        },
+        {
+          name: "Fraunces",
+          data: frauncesBold,
+          weight: 700,
+          style: "italic",
+        },
+      ],
+    }
   );
 }
