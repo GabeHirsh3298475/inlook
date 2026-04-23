@@ -3,7 +3,7 @@ import crypto from "crypto";
 const TIKTOK_AUTHORIZE_URL = "https://www.tiktok.com/v2/auth/authorize/";
 const TIKTOK_TOKEN_URL = "https://open.tiktokapis.com/v2/oauth/token/";
 const TIKTOK_USER_INFO_URL =
-  "https://open.tiktokapis.com/v2/user/info/?fields=open_id,avatar_url,avatar_large_url,display_name,username,follower_count,following_count,likes_count,video_count";
+  "https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,avatar_large_url,display_name,follower_count,following_count,likes_count,video_count";
 const TIKTOK_VIDEO_LIST_URL =
   "https://open.tiktokapis.com/v2/video/list/?fields=id,create_time,view_count,like_count,comment_count,share_count";
 
@@ -225,12 +225,12 @@ export async function fetchUserInfo(
   const res = await fetch(TIKTOK_USER_INFO_URL, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
-  const data = (await res.json()) as {
+  const raw = await res.text();
+  let data: {
     data?: {
       user?: {
         open_id?: string;
         display_name?: string;
-        username?: string;
         avatar_url?: string;
         avatar_large_url?: string;
         follower_count?: number;
@@ -238,13 +238,27 @@ export async function fetchUserInfo(
         video_count?: number;
       };
     };
-  };
+    error?: { code?: string; message?: string; log_id?: string };
+  } = {};
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    console.error("[tiktok/user_info] non-JSON response", res.status, raw.slice(0, 400));
+    return null;
+  }
   const u = data?.data?.user;
-  if (!u?.open_id) return null;
+  if (!u?.open_id) {
+    console.error(
+      "[tiktok/user_info] no open_id in response",
+      res.status,
+      JSON.stringify(data).slice(0, 600)
+    );
+    return null;
+  }
   return {
     openId: u.open_id,
     displayName: u.display_name ?? null,
-    username: u.username ?? null,
+    username: null,
     avatarUrl: u.avatar_large_url ?? u.avatar_url ?? null,
     followerCount: u.follower_count ?? null,
     likesCount: u.likes_count ?? null,
