@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { VerifiedBadge } from "@/components/verified-badge";
 
-const PLATFORMS = ["YouTube", "TikTok", "Instagram", "Multiple"];
 const NICHES = [
   "Tech & Apps",
   "Productivity",
@@ -32,7 +31,6 @@ const STORAGE_KEY = "inlook-apply-draft";
 type FormState = {
   name: string;
   email: string;
-  platform: string;
   niche: string;
 };
 
@@ -60,7 +58,6 @@ export function ApplyClient() {
   const [form, setForm] = useState<FormState>({
     name: initialName,
     email: "",
-    platform: "",
     niche: "",
   });
   const [submitted, setSubmitted] = useState(false);
@@ -202,7 +199,7 @@ export function ApplyClient() {
                 <VerifiedBadge label="Submitted" size="md" />
               ) : (
                 <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-400">
-                  4 fields · 2 min
+                  3 fields · 2 min
                 </span>
               )}
             </header>
@@ -269,18 +266,7 @@ export function ApplyClient() {
                     />
                   </Field>
 
-                  <Field label="Primary platform" htmlFor="f-platform" className="sm:col-span-1">
-                    <SelectField
-                      id="f-platform"
-                      required
-                      value={form.platform}
-                      onChange={(v) => update("platform", v)}
-                      placeholder="Select a platform"
-                      options={PLATFORMS}
-                    />
-                  </Field>
-
-                  <Field label="Primary niche" htmlFor="f-niche" className="sm:col-span-1">
+                  <Field label="Primary niche" htmlFor="f-niche" className="sm:col-span-2">
                     <SelectField
                       id="f-niche"
                       required

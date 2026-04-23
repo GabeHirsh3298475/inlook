@@ -25,10 +25,9 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   const body = await req.json();
 
-  const { name, email, platform, niche, youtube } = body as {
+  const { name, email, niche, youtube } = body as {
     name: string;
     email: string;
-    platform?: string;
     niche?: string;
     youtube?: { name: string | null; email: string | null };
   };
@@ -51,12 +50,15 @@ export async function POST(req: Request) {
     );
   }
 
+  const primaryPlatform =
+    hasYouTube && hasTikTok ? "both" : hasYouTube ? "youtube" : "tiktok";
+
   const { error: dbError } = await supabase
     .from("creators")
     .insert({
       full_name: name,
       email,
-      primary_platform: platform ?? null,
+      primary_platform: primaryPlatform,
       niche: niche ?? null,
       bio: "",
       approved: false,
@@ -125,11 +127,11 @@ export async function POST(req: Request) {
     await sendAdminNotification(
       name,
       email,
-      platform ?? (hasTikTok ? "TikTok" : "YouTube"),
+      primaryPlatform,
       hasYouTube
-        ? (youtube?.name ? `YouTube: ${youtube.name}` : "YouTube connected")
-        : tiktokSession?.username
-        ? `TikTok: @${tiktokSession.username}`
+        ? youtube?.name
+          ? `YouTube: ${youtube.name}`
+          : "YouTube connected"
         : "TikTok connected",
       niche ?? "",
       "",

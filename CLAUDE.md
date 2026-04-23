@@ -24,7 +24,7 @@ app/
   sitemap.ts            # Public sitemap (static routes + dynamic creator URLs)
   robots.ts             # robots.txt (disallow /api/, /dashboard, /messages, /sign-in*, /sign-up, /no-signup)
   providers.tsx         # Client-side providers wrapper
-  apply/                # Creator application form (4 fields: name, email, platform, niche) with YouTube + TikTok OAuth (at least one required)
+  apply/                # Creator application form (3 fields: name, email, niche) with YouTube + TikTok OAuth (at least one required). Primary platform is derived from which account(s) the creator connects.
   brands/               # Brand-facing page (includes brand waitlist form)
     [id]/               # Protected brand profile (creator/brand/admin only — shows business_name/bio/product_url/social_url, NEVER email)
   creators/             # Public creator network browser (server component fetches live creators from Supabase)
@@ -114,9 +114,10 @@ types/
 2. **Draft state** (not yet published):
    - **Analytics cards are platform-gated** — `YouTubeStats` renders only when `youtube_channel_id` is set; `TikTokStats` renders only when `tiktok_open_id` is set. If a creator connected both, both cards render stacked. If neither, a `NoPlatformCard` prompts them to go to `/apply`.
    - YouTube card: subscribers, engagement rate, avg view rate, 30d engagement, sub growth (30d %+count), total videos, total views. Refresh via `POST /api/creator/refresh-stats`.
-   - TikTok card: avatar + display name, **Avg Engagement Rate**, **Engagement Rate (30D)**, **Avg Likes/Comments/Shares per View** (all percentages), followers, video count, total views, total likes. Refresh via `POST /api/creator/refresh-tiktok-stats` — uses stored `tiktok_refresh_token` → new access token → re-runs `fetchUserInfo` + `fetchVideoAggregate` → rewrites all `tiktok_*` columns.
-   - Profile setup form: bio for brands (300 char max), pricing (long-form and short-form video rates), **Post Publicly toggle**.
-   - Go-live checklist: **Platform connected (YouTube or TikTok)**, bio written (min 50 chars), long video rate set, short video rate set, profile saved.
+   - TikTok card: avatar + display name, **Avg Engagement Rate**, **Avg Likes/Comments/Shares per View** (per-view ratios as percentages), followers, video count, total views, total likes. Refresh via `POST /api/creator/refresh-tiktok-stats` — uses stored `tiktok_refresh_token` → new access token → re-runs `fetchUserInfo` + `fetchVideoAggregate` → rewrites all `tiktok_*` columns. **No 30D row** — removed to keep the card focused.
+   - Profile setup form: **Connected Platforms** (read-only chips for what the creator connected at apply), **Primary Platform selector** (options gated by what's connected: `youtube`/`tiktok`/`both`; selector hidden if only one platform is connected), bio for brands (300 char max), pricing (long-form and short-form video rates), **Post Publicly** and **Show Deal Stats** toggles. No social URL inputs — links are derived from connected accounts only.
+   - Primary platform determines the stats shown on the creator's network card and the *order* of analytics sections on their full profile. Selector writes immediately via `POST /api/creator/update-profile`.
+   - Go-live checklist: **Platform connected (YouTube or TikTok)**, bio written (min 50 chars), long video rate set, short video rate set. (No "Profile saved" gate — Save button persists changes but Go Live is not blocked by unsaved state.)
    - "Go Live" button → `POST /api/creator/publish` sets `published: true`
 3. **Live state** (published):
    - Editable bio + Post Publicly toggle (both live-editable via `POST /api/creator/update-profile`)
@@ -140,11 +141,11 @@ types/
 - When no creators are live: renders "Inlook is still in beta testing. Creators coming soon..."
 - **Role-based data gating**: before sending data to the client, the server checks whether the viewer's role is `"brand"` or `"admin"` (both get full access). Everyone else gets a `PublicCreator` shape with `avg_view_rate` / `avg_engagement_rate` stripped to `null`, and (if `post_publicly = true`) `price_long_video` / `price_short_video` stripped to `null`. Stripped fields are never sent to the client, so inspect-element can't unblur them.
 - Card layout (sections separated by dividers):
-  1. Profile picture + name + niche chip (top-right); then followers + social icons row (YouTube always, plus TikTok/Instagram/X if linked — each opens the URL in a new tab).
-  2. Analytics: Avg. View %, Avg. Engagement Rate. Blurred with tooltip "You must be signed in as a brand to view this data." when not a brand.
-  3. Price section: centered "Price" label with Long/Short columns. Blurred with tooltip "The Creator requires brands to be signed in to view this data." when `post_publicly = true` and viewer is not a brand.
-  4. "View profile" link → `/creators/[id]`.
-- `/creators/[id]` renders four sections: Basic Information (pic + name + niche + followers + social icons), About (bio), Price (same blur rules), Analytics (same blur rules, plus extra stats only shown to brands). The Analytics card header reads "YouTube Analytics" on the left with a `VerifiedBadge` pinned to the top-right (badge is always rendered — the data blur only hides the *numbers*, the section is always marked as verified via platform APIs).
+  1. Profile picture + name + niche chip (top-right); then followers + social icons row for connected platforms (YouTube/TikTok).
+  2. **Analytics — primary-platform-driven**: if `primary_platform === "youtube"` shows Avg. View Rate + Avg. Engagement Rate; if `"tiktok"` shows TikTok **Avg. Engagement Rate** + **Avg. Likes / View** (the same two metrics as the dashboard's TikTok card); if `"both"` stacks YouTube and TikTok rows with sub-labels. Blurred for non-brands.
+  3. Price section: centered "Price" label with Long/Short columns. Blurred when `post_publicly = true` and viewer is not a brand.
+  4. "View profile" link → `/network/[id]`.
+- `/network/[id]` renders Basic Information + Price + About, then **one Analytics section per connected platform**, ordered primary-first. A creator who only connected TikTok shows only the TikTok Analytics section; one who connected both gets the primary first and the other stacked beneath. Each section carries its own `VerifiedBadge`.
 - Filters: Niche (matches /apply options exactly), Platform (YouTube/TikTok/Instagram/X — platform filter checks which URLs the creator has linked), Followers (Under 10K, 10K–50K, 50K–100K, 100K–250K, 250K+). No Price filter.
 
 ### 5b. Admin visibility override (`admin_hidden`)

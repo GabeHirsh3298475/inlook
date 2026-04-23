@@ -44,14 +44,6 @@ export function DashboardClient({
   const [creator, setCreator] = useState(initialCreator);
 
   const [bio, setBio] = useState(creator?.bio ?? "");
-  const [tiktok, setTiktok] = useState(creator?.tiktok_url ?? "");
-  const [tiktokFollowers, setTiktokFollowers] = useState(
-    creator?.tiktok_follower_count?.toString() ?? ""
-  );
-  const [instagram, setInstagram] = useState(creator?.instagram_url ?? "");
-  const [instagramFollowers, setInstagramFollowers] = useState(
-    creator?.instagram_follower_count?.toString() ?? ""
-  );
   const [priceLong, setPriceLong] = useState(
     creator?.price_long_video?.toString() ?? ""
   );
@@ -65,6 +57,18 @@ export function DashboardClient({
     creator?.show_deal_stats ?? true
   );
 
+  const hasYouTube = !!creator?.youtube_channel_id;
+  const hasTikTok = !!creator?.tiktok_open_id;
+  const defaultPrimary: "youtube" | "tiktok" | "both" =
+    hasYouTube && hasTikTok ? "both" : hasTikTok ? "tiktok" : "youtube";
+  const initialPrimary = (() => {
+    const v = creator?.primary_platform?.toLowerCase();
+    if (v === "youtube" || v === "tiktok" || v === "both") return v;
+    return defaultPrimary;
+  })();
+  const [primaryPlatform, setPrimaryPlatform] =
+    useState<"youtube" | "tiktok" | "both">(initialPrimary);
+
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -75,43 +79,35 @@ export function DashboardClient({
     }
   }, [creator]);
 
+  async function postUpdate(payload: Record<string, unknown>) {
+    return fetch("/api/creator/update-profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  }
+
   async function handleSaveProfile() {
     setSaving(true);
     setSaved(false);
     try {
-      const res = await fetch("/api/creator/update-profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bio,
-          tiktokUrl: tiktok || null,
-          tiktokFollowerCount: tiktok && tiktokFollowers
-            ? Number(tiktokFollowers)
-            : null,
-          instagramUrl: instagram || null,
-          instagramFollowerCount: instagram && instagramFollowers
-            ? Number(instagramFollowers)
-            : null,
-          priceLongVideo: priceLong ? Number(priceLong) : null,
-          priceShortVideo: priceShort ? Number(priceShort) : null,
-          postPublicly,
-          showDealStats,
-        }),
+      const res = await postUpdate({
+        bio,
+        priceLongVideo: priceLong ? Number(priceLong) : null,
+        priceShortVideo: priceShort ? Number(priceShort) : null,
+        postPublicly,
+        showDealStats,
+        primaryPlatform,
       });
       if (res.ok && creator) {
         setCreator({
           ...creator,
           bio,
-          tiktok_url: tiktok || null,
-          tiktok_follower_count:
-            tiktok && tiktokFollowers ? Number(tiktokFollowers) : null,
-          instagram_url: instagram || null,
-          instagram_follower_count:
-            instagram && instagramFollowers ? Number(instagramFollowers) : null,
           price_long_video: priceLong ? Number(priceLong) : null,
           price_short_video: priceShort ? Number(priceShort) : null,
           post_publicly: postPublicly,
           show_deal_stats: showDealStats,
+          primary_platform: primaryPlatform,
         });
       }
       setSaved(true);
@@ -124,24 +120,14 @@ export function DashboardClient({
     setSaving(true);
     setSaved(false);
     try {
-      const res = await fetch("/api/creator/update-profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bio,
-          tiktokUrl: creator?.tiktok_url,
-          tiktokFollowerCount: creator?.tiktok_follower_count,
-          instagramUrl: creator?.instagram_url,
-          instagramFollowerCount: creator?.instagram_follower_count,
-          priceLongVideo: creator?.price_long_video,
-          priceShortVideo: creator?.price_short_video,
-          postPublicly: creator?.post_publicly ?? false,
-          showDealStats: creator?.show_deal_stats ?? true,
-        }),
+      const res = await postUpdate({
+        bio,
+        priceLongVideo: creator?.price_long_video,
+        priceShortVideo: creator?.price_short_video,
+        postPublicly: creator?.post_publicly ?? false,
+        showDealStats: creator?.show_deal_stats ?? true,
       });
-      if (res.ok && creator) {
-        setCreator({ ...creator, bio });
-      }
+      if (res.ok && creator) setCreator({ ...creator, bio });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch {}
@@ -152,20 +138,12 @@ export function DashboardClient({
     if (!creator) return;
     setPostPublicly(value);
     try {
-      await fetch("/api/creator/update-profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bio: creator.bio,
-          tiktokUrl: creator.tiktok_url,
-          tiktokFollowerCount: creator.tiktok_follower_count,
-          instagramUrl: creator.instagram_url,
-          instagramFollowerCount: creator.instagram_follower_count,
-          priceLongVideo: creator.price_long_video,
-          priceShortVideo: creator.price_short_video,
-          postPublicly: value,
-          showDealStats: creator.show_deal_stats,
-        }),
+      await postUpdate({
+        bio: creator.bio,
+        priceLongVideo: creator.price_long_video,
+        priceShortVideo: creator.price_short_video,
+        postPublicly: value,
+        showDealStats: creator.show_deal_stats,
       });
       setCreator({ ...creator, post_publicly: value });
     } catch {}
@@ -175,22 +153,32 @@ export function DashboardClient({
     if (!creator) return;
     setShowDealStats(value);
     try {
-      await fetch("/api/creator/update-profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bio: creator.bio,
-          tiktokUrl: creator.tiktok_url,
-          tiktokFollowerCount: creator.tiktok_follower_count,
-          instagramUrl: creator.instagram_url,
-          instagramFollowerCount: creator.instagram_follower_count,
-          priceLongVideo: creator.price_long_video,
-          priceShortVideo: creator.price_short_video,
-          postPublicly: creator.post_publicly,
-          showDealStats: value,
-        }),
+      await postUpdate({
+        bio: creator.bio,
+        priceLongVideo: creator.price_long_video,
+        priceShortVideo: creator.price_short_video,
+        postPublicly: creator.post_publicly,
+        showDealStats: value,
       });
       setCreator({ ...creator, show_deal_stats: value });
+    } catch {}
+  }
+
+  async function handleChangePrimaryPlatform(
+    value: "youtube" | "tiktok" | "both"
+  ) {
+    if (!creator) return;
+    setPrimaryPlatform(value);
+    try {
+      await postUpdate({
+        bio: creator.bio,
+        priceLongVideo: creator.price_long_video,
+        priceShortVideo: creator.price_short_video,
+        postPublicly: creator.post_publicly,
+        showDealStats: creator.show_deal_stats,
+        primaryPlatform: value,
+      });
+      setCreator({ ...creator, primary_platform: value });
     } catch {}
   }
 
@@ -205,27 +193,12 @@ export function DashboardClient({
     setPublishing(false);
   }
 
-  const hasUnsavedChanges =
-    !!creator &&
-    (bio !== (creator.bio ?? "") ||
-      tiktok !== (creator.tiktok_url ?? "") ||
-      tiktokFollowers !==
-        (creator.tiktok_follower_count?.toString() ?? "") ||
-      instagram !== (creator.instagram_url ?? "") ||
-      instagramFollowers !==
-        (creator.instagram_follower_count?.toString() ?? "") ||
-      priceLong !== (creator.price_long_video?.toString() ?? "") ||
-      priceShort !== (creator.price_short_video?.toString() ?? "") ||
-      postPublicly !== (creator.post_publicly ?? false) ||
-      showDealStats !== (creator.show_deal_stats ?? true));
-
   const canGoLive =
     creator?.approved &&
-    creator?.connected_at &&
+    (hasYouTube || hasTikTok) &&
     bio.length >= 50 &&
     Number(priceLong) > 0 &&
-    Number(priceShort) > 0 &&
-    !hasUnsavedChanges;
+    Number(priceShort) > 0;
 
   if (!creator) {
     return (
@@ -298,14 +271,6 @@ export function DashboardClient({
               creator={creator}
               bio={bio}
               setBio={setBio}
-              tiktok={tiktok}
-              setTiktok={setTiktok}
-              tiktokFollowers={tiktokFollowers}
-              setTiktokFollowers={setTiktokFollowers}
-              instagram={instagram}
-              setInstagram={setInstagram}
-              instagramFollowers={instagramFollowers}
-              setInstagramFollowers={setInstagramFollowers}
               priceLong={priceLong}
               setPriceLong={setPriceLong}
               priceShort={priceShort}
@@ -314,6 +279,10 @@ export function DashboardClient({
               setPostPublicly={setPostPublicly}
               showDealStats={showDealStats}
               setShowDealStats={setShowDealStats}
+              hasYouTube={hasYouTube}
+              hasTikTok={hasTikTok}
+              primaryPlatform={primaryPlatform}
+              onChangePrimaryPlatform={handleChangePrimaryPlatform}
               saving={saving}
               saved={saved}
               onSave={handleSaveProfile}
@@ -323,10 +292,10 @@ export function DashboardClient({
             <GoLiveCard
               creator={creator}
               canGoLive={!!canGoLive}
+              hasPlatform={hasYouTube || hasTikTok}
               hasBio={bio.length >= 50}
               hasLongPrice={Number(priceLong) > 0}
               hasShortPrice={Number(priceShort) > 0}
-              hasUnsavedChanges={hasUnsavedChanges}
               publishing={publishing}
               onGoLive={handleGoLive}
             />
@@ -495,8 +464,15 @@ function LiveDashboard({
                 Social Links
               </p>
               <div className="mt-3 space-y-2">
-                {creator.channel_url && (
-                  <SocialRow label="YouTube" value={creator.channel_url} />
+                {creator.youtube_channel_id && (
+                  <SocialRow
+                    label="YouTube"
+                    value={
+                      creator.channel_url ??
+                      `https://youtube.com/channel/${creator.youtube_channel_id}`
+                    }
+                    link
+                  />
                 )}
                 {creator.tiktok_open_id && (
                   <SocialRow
@@ -508,19 +484,9 @@ function LiveDashboard({
                     }
                   />
                 )}
-                {creator.tiktok_url && (
-                  <SocialRow label="TikTok" value={creator.tiktok_url} link />
-                )}
-                {creator.instagram_url && (
-                  <SocialRow
-                    label="Instagram"
-                    value={creator.instagram_url}
-                    link
-                  />
-                )}
               </div>
               <p className="mt-3 font-mono text-[10px] text-ink-400">
-                Contact support to update links
+                Contact support to add another platform
               </p>
             </div>
 
@@ -827,13 +793,6 @@ function TikTokStats({ creator }: { creator: CreatorRow }) {
           : "—",
     },
     {
-      label: "Engagement Rate (30D)",
-      value:
-        creator.tiktok_engagement_rate_30d != null
-          ? `${creator.tiktok_engagement_rate_30d.toFixed(1)}%`
-          : "—",
-    },
-    {
       label: "Avg. Likes / View",
       value: avgLikes != null ? `${avgLikes.toFixed(2)}%` : "—",
     },
@@ -1008,32 +967,10 @@ function DealStats({ creator }: { creator: CreatorRow }) {
 const inputCls =
   "h-11 w-full rounded-full border border-ink-700 bg-ink-850 px-4 font-sans text-sm text-ink-50 placeholder:text-ink-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30";
 
-function isValidSocialUrl(
-  url: string,
-  platform: "tiktok" | "instagram"
-): boolean {
-  if (!url) return true;
-  const lower = url.toLowerCase();
-  switch (platform) {
-    case "tiktok":
-      return lower.includes("tiktok.com");
-    case "instagram":
-      return lower.includes("instagram.com");
-  }
-}
-
 function ProfileSetupForm({
   creator,
   bio,
   setBio,
-  tiktok,
-  setTiktok,
-  tiktokFollowers,
-  setTiktokFollowers,
-  instagram,
-  setInstagram,
-  instagramFollowers,
-  setInstagramFollowers,
   priceLong,
   setPriceLong,
   priceShort,
@@ -1042,6 +979,10 @@ function ProfileSetupForm({
   setPostPublicly,
   showDealStats,
   setShowDealStats,
+  hasYouTube,
+  hasTikTok,
+  primaryPlatform,
+  onChangePrimaryPlatform,
   saving,
   saved,
   onSave,
@@ -1049,14 +990,6 @@ function ProfileSetupForm({
   creator: CreatorRow;
   bio: string;
   setBio: (v: string) => void;
-  tiktok: string;
-  setTiktok: (v: string) => void;
-  tiktokFollowers: string;
-  setTiktokFollowers: (v: string) => void;
-  instagram: string;
-  setInstagram: (v: string) => void;
-  instagramFollowers: string;
-  setInstagramFollowers: (v: string) => void;
   priceLong: string;
   setPriceLong: (v: string) => void;
   priceShort: string;
@@ -1065,151 +998,54 @@ function ProfileSetupForm({
   setPostPublicly: (v: boolean) => void;
   showDealStats: boolean;
   setShowDealStats: (v: boolean) => void;
+  hasYouTube: boolean;
+  hasTikTok: boolean;
+  primaryPlatform: "youtube" | "tiktok" | "both";
+  onChangePrimaryPlatform: (v: "youtube" | "tiktok" | "both") => void;
   saving: boolean;
   saved: boolean;
   onSave: () => void;
 }) {
-  const tiktokValid = isValidSocialUrl(tiktok, "tiktok");
-  const instagramValid = isValidSocialUrl(instagram, "instagram");
-  const urlsValid = tiktokValid && instagramValid;
-
   return (
     <div className="rounded-3xl border border-ink-800 bg-ink-900 p-7 shadow-card">
       <h2 className="font-display text-xl font-medium tracking-tight text-ink-50">
         Profile Setup
       </h2>
 
-      {/* Social Links */}
+      {/* Connected platforms (read-only) */}
       <div className="mt-6">
         <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-300">
-          Social Links
+          Connected Platforms
         </p>
-        <div className="mt-3 space-y-3">
-          {creator.youtube_channel_id && (
-            <div>
-              <label
-                htmlFor="d-youtube"
-                className="mb-1.5 flex items-center gap-2 font-sans text-xs text-ink-300"
-              >
-                YouTube URL
-                <VerifiedBadge size="sm" />
-              </label>
-              <input
-                id="d-youtube"
-                type="text"
-                disabled
-                value={
-                  creator.channel_url ??
-                  `https://youtube.com/channel/${creator.youtube_channel_id}`
-                }
-                className={`${inputCls} cursor-not-allowed opacity-50`}
-              />
-            </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {hasYouTube && (
+            <span className="inline-flex items-center gap-2 rounded-full border border-ink-700 bg-ink-850 px-3 py-1.5 font-mono text-[11px] text-ink-100">
+              <Youtube className="h-3.5 w-3.5" strokeWidth={1.6} />
+              YouTube
+              <VerifiedBadge size="sm" />
+            </span>
           )}
-          {creator.tiktok_open_id && (
-            <div>
-              <label
-                htmlFor="d-tiktok-verified"
-                className="mb-1.5 flex items-center gap-2 font-sans text-xs text-ink-300"
-              >
-                TikTok (verified)
-                <VerifiedBadge size="sm" />
-              </label>
-              <input
-                id="d-tiktok-verified"
-                type="text"
-                disabled
-                value={
-                  creator.tiktok_display_name
-                    ? `@${creator.tiktok_display_name}`
-                    : "TikTok connected"
-                }
-                className={`${inputCls} cursor-not-allowed opacity-50`}
-              />
-            </div>
+          {hasTikTok && (
+            <span className="inline-flex items-center gap-2 rounded-full border border-ink-700 bg-ink-850 px-3 py-1.5 font-mono text-[11px] text-ink-100">
+              <Music2 className="h-3.5 w-3.5" strokeWidth={1.6} />
+              TikTok
+              <VerifiedBadge size="sm" />
+            </span>
           )}
-          <div>
-            <label
-              htmlFor="d-tiktok"
-              className="mb-1.5 block font-sans text-xs text-ink-300"
-            >
-              TikTok URL
-            </label>
-            <input
-              id="d-tiktok"
-              type="text"
-              value={tiktok}
-              onChange={(e) => setTiktok(e.target.value)}
-              placeholder="https://tiktok.com/@yourchannel"
-              className={`${inputCls} ${tiktok && !tiktokValid ? "border-red-500 focus:border-red-500 focus:ring-red-500/30" : ""}`}
-            />
-            {tiktok && !tiktokValid && (
-              <p className="mt-1 font-sans text-xs text-red-400">
-                Must be a tiktok.com URL
-              </p>
-            )}
-            {tiktok && tiktokValid && (
-              <div className="mt-2">
-                <label
-                  htmlFor="d-tiktok-followers"
-                  className="mb-1.5 block font-sans text-xs text-ink-300"
-                >
-                  TikTok follower count
-                </label>
-                <input
-                  id="d-tiktok-followers"
-                  type="number"
-                  min={0}
-                  value={tiktokFollowers}
-                  onChange={(e) => setTiktokFollowers(e.target.value)}
-                  placeholder="e.g. 42000"
-                  className={inputCls}
-                />
-              </div>
-            )}
-          </div>
-          <div>
-            <label
-              htmlFor="d-instagram"
-              className="mb-1.5 block font-sans text-xs text-ink-300"
-            >
-              Instagram URL
-            </label>
-            <input
-              id="d-instagram"
-              type="text"
-              value={instagram}
-              onChange={(e) => setInstagram(e.target.value)}
-              placeholder="https://instagram.com/yourprofile"
-              className={`${inputCls} ${instagram && !instagramValid ? "border-red-500 focus:border-red-500 focus:ring-red-500/30" : ""}`}
-            />
-            {instagram && !instagramValid && (
-              <p className="mt-1 font-sans text-xs text-red-400">
-                Must be an instagram.com URL
-              </p>
-            )}
-            {instagram && instagramValid && (
-              <div className="mt-2">
-                <label
-                  htmlFor="d-instagram-followers"
-                  className="mb-1.5 block font-sans text-xs text-ink-300"
-                >
-                  Instagram follower count
-                </label>
-                <input
-                  id="d-instagram-followers"
-                  type="number"
-                  min={0}
-                  value={instagramFollowers}
-                  onChange={(e) => setInstagramFollowers(e.target.value)}
-                  placeholder="e.g. 18000"
-                  className={inputCls}
-                />
-              </div>
-            )}
-          </div>
         </div>
+        <p className="mt-3 font-sans text-[12px] leading-relaxed text-ink-400">
+          Your social links come from whichever platforms you connected at
+          application time. Contact support to add another.
+        </p>
       </div>
+
+      {/* Primary platform selector */}
+      <PrimaryPlatformSelector
+        hasYouTube={hasYouTube}
+        hasTikTok={hasTikTok}
+        value={primaryPlatform}
+        onChange={onChangePrimaryPlatform}
+      />
 
       {/* About */}
       <div className="mt-6">
@@ -1307,7 +1143,7 @@ function ProfileSetupForm({
       <button
         type="button"
         onClick={onSave}
-        disabled={saving || !urlsValid}
+        disabled={saving}
         className="btn-primary mt-6 disabled:opacity-50"
       >
         {saved ? (
@@ -1334,7 +1170,7 @@ function GoLiveCard({
   hasBio,
   hasLongPrice,
   hasShortPrice,
-  hasUnsavedChanges,
+  hasPlatform,
   publishing,
   onGoLive,
 }: {
@@ -1343,19 +1179,18 @@ function GoLiveCard({
   hasBio: boolean;
   hasLongPrice: boolean;
   hasShortPrice: boolean;
-  hasUnsavedChanges: boolean;
+  hasPlatform: boolean;
   publishing: boolean;
   onGoLive: () => void;
 }) {
   const checklist = [
     {
       label: "Platform connected (YouTube or TikTok)",
-      done: !!creator.youtube_channel_id || !!creator.tiktok_open_id,
+      done: hasPlatform,
     },
     { label: "Bio written (min 50 chars)", done: hasBio },
     { label: "Long video rate set", done: hasLongPrice },
     { label: "Short video rate set", done: hasShortPrice },
-    { label: "Profile saved", done: !hasUnsavedChanges },
   ];
 
   return (
@@ -1411,6 +1246,54 @@ function GoLiveCard({
           </>
         )}
       </button>
+    </div>
+  );
+}
+
+function PrimaryPlatformSelector({
+  hasYouTube,
+  hasTikTok,
+  value,
+  onChange,
+}: {
+  hasYouTube: boolean;
+  hasTikTok: boolean;
+  value: "youtube" | "tiktok" | "both";
+  onChange: (v: "youtube" | "tiktok" | "both") => void;
+}) {
+  const options: { value: "youtube" | "tiktok" | "both"; label: string }[] = [];
+  if (hasYouTube) options.push({ value: "youtube", label: "YouTube" });
+  if (hasTikTok) options.push({ value: "tiktok", label: "TikTok" });
+  if (hasYouTube && hasTikTok)
+    options.push({ value: "both", label: "Both" });
+
+  if (options.length <= 1) return null;
+
+  return (
+    <div className="mt-6">
+      <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-300">
+        Primary Platform
+      </p>
+      <p className="mt-1 font-sans text-[12px] leading-relaxed text-ink-400">
+        Your primary platform determines the stats shown on your network
+        creator card.
+      </p>
+      <div className="mt-3 inline-flex overflow-hidden rounded-full border border-ink-700 bg-ink-850">
+        {options.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            className={`px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors ${
+              value === opt.value
+                ? "bg-accent text-ink-950"
+                : "text-ink-300 hover:text-accent"
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

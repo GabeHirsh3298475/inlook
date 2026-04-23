@@ -3,26 +3,17 @@ import { supabase } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 import { checkLimit, updateProfileUserLimiter } from "@/lib/rate-limit";
 
-function isValidSocialUrl(
-  url: string | undefined | null,
-  platform: "tiktok" | "instagram"
-): boolean {
-  if (!url) return true;
-  const lower = url.toLowerCase();
-  switch (platform) {
-    case "tiktok":
-      return lower.includes("tiktok.com");
-    case "instagram":
-      return lower.includes("instagram.com");
-  }
-}
+type PrimaryPlatform = "youtube" | "tiktok" | "both";
 
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const rl = await checkLimit(updateProfileUserLimiter, `update-profile:${userId}`);
+  const rl = await checkLimit(
+    updateProfileUserLimiter,
+    `update-profile:${userId}`
+  );
   if (!rl.ok)
     return NextResponse.json(
       { error: "Too many updates. Try again shortly." },
@@ -31,50 +22,62 @@ export async function POST(req: Request) {
 
   const {
     bio,
-    tiktokUrl,
-    tiktokFollowerCount,
-    instagramUrl,
-    instagramFollowerCount,
     priceLongVideo,
     priceShortVideo,
     postPublicly,
     showDealStats,
+    primaryPlatform,
   } = (await req.json()) as {
     bio: string;
-    tiktokUrl?: string;
-    tiktokFollowerCount?: number | null;
-    instagramUrl?: string;
-    instagramFollowerCount?: number | null;
     priceLongVideo?: number;
     priceShortVideo?: number;
     postPublicly?: boolean;
     showDealStats?: boolean;
+    primaryPlatform?: PrimaryPlatform;
   };
 
-  if (!isValidSocialUrl(tiktokUrl, "tiktok"))
+  if (
+    primaryPlatform !== undefined &&
+    primaryPlatform !== "youtube" &&
+    primaryPlatform !== "tiktok" &&
+    primaryPlatform !== "both"
+  ) {
     return NextResponse.json(
-      { error: "TikTok URL must be a tiktok.com link" },
+      { error: "Invalid primary_platform" },
       { status: 400 }
     );
-  if (!isValidSocialUrl(instagramUrl, "instagram"))
-    return NextResponse.json(
-      { error: "Instagram URL must be an instagram.com link" },
-      { status: 400 }
-    );
+  }
+
+  if (primaryPlatform) {
+    const { data: row } = await supabase
+      .from("creators")
+      .select("youtube_channel_id, tiktok_open_id")
+      .eq("clerk_user_id", userId)
+      .single();
+    const hasYt = !!(row as { youtube_channel_id: string | null } | null)
+      ?.youtube_channel_id;
+    const hasTt = !!(row as { tiktok_open_id: string | null } | null)
+      ?.tiktok_open_id;
+    const allowed = new Set<PrimaryPlatform>();
+    if (hasYt) allowed.add("youtube");
+    if (hasTt) allowed.add("tiktok");
+    if (hasYt && hasTt) allowed.add("both");
+    if (!allowed.has(primaryPlatform)) {
+      return NextResponse.json(
+        { error: "Primary platform does not match connected accounts" },
+        { status: 400 }
+      );
+    }
+  }
 
   const update: Record<string, unknown> = {
     bio,
-    tiktok_url: tiktokUrl ?? null,
-    tiktok_follower_count: tiktokUrl ? tiktokFollowerCount ?? null : null,
-    instagram_url: instagramUrl ?? null,
-    instagram_follower_count: instagramUrl
-      ? instagramFollowerCount ?? null
-      : null,
     price_long_video: priceLongVideo ?? null,
     price_short_video: priceShortVideo ?? null,
     post_publicly: postPublicly ?? false,
   };
   if (showDealStats !== undefined) update.show_deal_stats = showDealStats;
+  if (primaryPlatform !== undefined) update.primary_platform = primaryPlatform;
 
   const { error } = await supabase
     .from("creators")

@@ -99,18 +99,41 @@ export function CreatorCard({
 
       <Divider />
 
-      {/* Section 2: analytics (gated) */}
+      {/* Section 2: analytics (gated, primary-platform-driven) */}
       <section className="px-6 py-5">
         <div className="flex items-center justify-between">
-          <p className="eyebrow">Performance</p>
+          <p className="eyebrow">
+            {creator.primaryPlatform === "tiktok"
+              ? "TikTok"
+              : creator.primaryPlatform === "both"
+              ? "Performance"
+              : "YouTube"}{" "}
+            Performance
+          </p>
           <LogoVerifiedBadge />
         </div>
         <div className="mt-3">
-          <AnalyticsBlock
-            canViewAll={canViewAll}
-            avgViewRate={creator.avgViewRate}
-            avgEngagementRate={creator.avgEngagementRate}
-          />
+          {creator.primaryPlatform === "tiktok" ? (
+            <TikTokAnalyticsBlock
+              canViewAll={canViewAll}
+              avgEngagementRate={creator.tiktokAvgEngagementRate}
+              avgLikesPerView={creator.tiktokAvgLikesPerView}
+            />
+          ) : creator.primaryPlatform === "both" ? (
+            <BothAnalyticsBlock
+              canViewAll={canViewAll}
+              avgViewRate={creator.avgViewRate}
+              avgEngagementRate={creator.avgEngagementRate}
+              tiktokAvgEngagementRate={creator.tiktokAvgEngagementRate}
+              tiktokAvgLikesPerView={creator.tiktokAvgLikesPerView}
+            />
+          ) : (
+            <AnalyticsBlock
+              canViewAll={canViewAll}
+              avgViewRate={creator.avgViewRate}
+              avgEngagementRate={creator.avgEngagementRate}
+            />
+          )}
         </div>
       </section>
 
@@ -218,6 +241,91 @@ export function AnalyticsBlock({
         />
       )}
     </dl>
+  );
+}
+
+const TIKTOK_ENGAGEMENT_DEF = (
+  <span className="inline-flex flex-col items-center font-mono text-[11px] text-ink-100">
+    <span className="px-1 leading-snug">likes + comments + shares</span>
+    <span className="my-0.5 h-px w-full bg-ink-500" aria-hidden />
+    <span className="px-1 leading-snug">total views</span>
+  </span>
+);
+const TIKTOK_LIKES_PER_VIEW_DEF = (
+  <span className="inline-flex flex-col items-center font-mono text-[11px] text-ink-100">
+    <span className="px-1 leading-snug">total likes</span>
+    <span className="my-0.5 h-px w-full bg-ink-500" aria-hidden />
+    <span className="px-1 leading-snug">total views</span>
+  </span>
+);
+
+export function TikTokAnalyticsBlock({
+  canViewAll,
+  avgEngagementRate,
+  avgLikesPerView,
+}: {
+  canViewAll: boolean;
+  avgEngagementRate: number | null;
+  avgLikesPerView: number | null;
+}) {
+  return (
+    <dl className="space-y-2">
+      <AnalyticsRow
+        label="Avg. Engagement Rate"
+        definition={TIKTOK_ENGAGEMENT_DEF}
+        blurred={!canViewAll}
+        value={
+          avgEngagementRate != null ? `${avgEngagementRate.toFixed(1)}%` : "—"
+        }
+      />
+      <AnalyticsRow
+        label="Avg. Likes / View"
+        definition={TIKTOK_LIKES_PER_VIEW_DEF}
+        blurred={!canViewAll}
+        value={
+          avgLikesPerView != null ? `${avgLikesPerView.toFixed(2)}%` : "—"
+        }
+      />
+    </dl>
+  );
+}
+
+export function BothAnalyticsBlock({
+  canViewAll,
+  avgViewRate,
+  avgEngagementRate,
+  tiktokAvgEngagementRate,
+  tiktokAvgLikesPerView,
+}: {
+  canViewAll: boolean;
+  avgViewRate: number | null;
+  avgEngagementRate: number | null;
+  tiktokAvgEngagementRate: number | null;
+  tiktokAvgLikesPerView: number | null;
+}) {
+  return (
+    <div className="space-y-3">
+      <div>
+        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-400">
+          YouTube
+        </p>
+        <AnalyticsBlock
+          canViewAll={canViewAll}
+          avgViewRate={avgViewRate}
+          avgEngagementRate={avgEngagementRate}
+        />
+      </div>
+      <div>
+        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink-400">
+          TikTok
+        </p>
+        <TikTokAnalyticsBlock
+          canViewAll={canViewAll}
+          avgEngagementRate={tiktokAvgEngagementRate}
+          avgLikesPerView={tiktokAvgLikesPerView}
+        />
+      </div>
+    </div>
   );
 }
 

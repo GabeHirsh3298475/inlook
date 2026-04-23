@@ -8,6 +8,7 @@ import { formatFollowers } from "@/lib/utils";
 import {
   AnalyticsBlock,
   PriceBlock,
+  TikTokAnalyticsBlock,
 } from "@/components/creator-card";
 import { MessageButton } from "@/components/message-button";
 import { PlatformIcon } from "@/components/platform-icon";
@@ -102,6 +103,33 @@ export default async function CreatorProfilePage({
   const showDealStats = creator.show_deal_stats ?? true;
   const dealStatsVisible = isSelf || showDealStats;
 
+  const hasYouTube = !!creator.youtube_channel_id;
+  const hasTikTok = !!creator.tiktok_open_id;
+  const ppRaw = creator.primary_platform?.toLowerCase();
+  const primaryPlatform: "youtube" | "tiktok" | "both" =
+    ppRaw === "youtube" || ppRaw === "tiktok" || ppRaw === "both"
+      ? ppRaw
+      : hasYouTube && hasTikTok
+      ? "both"
+      : hasTikTok
+      ? "tiktok"
+      : "youtube";
+
+  const tiktokTotalViews = creator.tiktok_total_views ?? 0;
+  const tiktokLikes = creator.tiktok_likes_count ?? 0;
+  const tiktokAvgLikesPerView =
+    tiktokTotalViews > 0 ? (tiktokLikes / tiktokTotalViews) * 100 : null;
+
+  // Primary first, then the other if connected.
+  const sections: Array<"youtube" | "tiktok"> = [];
+  if (primaryPlatform === "tiktok") {
+    if (hasTikTok) sections.push("tiktok");
+    if (hasYouTube) sections.push("youtube");
+  } else {
+    if (hasYouTube) sections.push("youtube");
+    if (hasTikTok) sections.push("tiktok");
+  }
+
   return (
     <section className="relative">
       <div className="container-x py-12 sm:py-16">
@@ -183,81 +211,156 @@ export default async function CreatorProfilePage({
             )}
           </div>
 
-          {/* Analytics */}
-          <div className="rounded-3xl border border-ink-800 bg-ink-900 p-7 shadow-card lg:col-span-2">
-            <div className="flex items-center justify-between gap-3">
-              <p className="eyebrow">YouTube Analytics</p>
-              <VerifiedBadge />
-            </div>
-            <div className="mt-5">
-              <AnalyticsBlock
-                canViewAll={canViewAll}
-                avgViewRate={canViewAll ? creator.avg_view_rate : null}
-                avgEngagementRate={
-                  canViewAll ? creator.avg_engagement_rate : null
-                }
-                engagementRate30d={
-                  canViewAll ? creator.engagement_rate_30d : null
-                }
-                showEngagement30d
-              />
-            </div>
-            {canViewAll ? (
-              <>
-                <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <Stat
-                    label="Subscribers"
-                    value={
-                      creator.subscriber_count != null
-                        ? creator.subscriber_count.toLocaleString()
-                        : "—"
-                    }
-                  />
-                  <Stat
-                    label="Total Videos"
-                    value={
-                      creator.total_videos != null
-                        ? creator.total_videos.toLocaleString()
-                        : "—"
-                    }
-                  />
-                  <Stat
-                    label="Total Views"
-                    value={
-                      creator.total_channel_views != null
-                        ? creator.total_channel_views.toLocaleString()
-                        : "—"
-                    }
-                  />
-                  <Stat
-                    label="Sub Growth (30d)"
-                    value={
-                      creator.subscriber_growth_30d != null
-                        ? `${creator.subscriber_growth_30d >= 0 ? "+" : ""}${creator.subscriber_growth_30d.toFixed(2)}%${
-                            creator.subscriber_growth_30d_count != null
-                              ? ` · ${creator.subscriber_growth_30d_count >= 0 ? "+" : ""}${creator.subscriber_growth_30d_count.toLocaleString()}`
-                              : ""
-                          }`
-                        : "—"
+          {/* Analytics — ordered primary-first, with the other platform below if connected */}
+          {sections.map((section) =>
+            section === "youtube" ? (
+              <div
+                key="youtube"
+                className="rounded-3xl border border-ink-800 bg-ink-900 p-7 shadow-card lg:col-span-2"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="eyebrow">YouTube Analytics</p>
+                  <VerifiedBadge />
+                </div>
+                <div className="mt-5">
+                  <AnalyticsBlock
+                    canViewAll={canViewAll}
+                    avgViewRate={canViewAll ? creator.avg_view_rate : null}
+                    avgEngagementRate={
+                      canViewAll ? creator.avg_engagement_rate : null
                     }
                   />
                 </div>
-                {creator.stats_last_updated && (
-                  <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-400">
-                    Last synced{" "}
-                    <LocalDateTime iso={creator.stats_last_updated} />
-                  </p>
+                {canViewAll ? (
+                  <>
+                    <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                      <Stat
+                        label="Subscribers"
+                        value={
+                          creator.subscriber_count != null
+                            ? creator.subscriber_count.toLocaleString()
+                            : "—"
+                        }
+                      />
+                      <Stat
+                        label="Total Videos"
+                        value={
+                          creator.total_videos != null
+                            ? creator.total_videos.toLocaleString()
+                            : "—"
+                        }
+                      />
+                      <Stat
+                        label="Total Views"
+                        value={
+                          creator.total_channel_views != null
+                            ? creator.total_channel_views.toLocaleString()
+                            : "—"
+                        }
+                      />
+                      <Stat
+                        label="Sub Growth (30d)"
+                        value={
+                          creator.subscriber_growth_30d != null
+                            ? `${creator.subscriber_growth_30d >= 0 ? "+" : ""}${creator.subscriber_growth_30d.toFixed(2)}%${
+                                creator.subscriber_growth_30d_count != null
+                                  ? ` · ${creator.subscriber_growth_30d_count >= 0 ? "+" : ""}${creator.subscriber_growth_30d_count.toLocaleString()}`
+                                  : ""
+                              }`
+                            : "—"
+                        }
+                      />
+                    </div>
+                    {creator.stats_last_updated && (
+                      <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-400">
+                        Last synced{" "}
+                        <LocalDateTime iso={creator.stats_last_updated} />
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                    <Stat label="Subscribers" value="—" blurred />
+                    <Stat label="Total Videos" value="—" blurred />
+                    <Stat label="Total Views" value="—" blurred />
+                    <Stat label="Sub Growth (30d)" value="—" blurred />
+                  </div>
                 )}
-              </>
-            ) : (
-              <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <Stat label="Subscribers" value="—" blurred />
-                <Stat label="Total Videos" value="—" blurred />
-                <Stat label="Total Views" value="—" blurred />
-                <Stat label="Sub Growth (30d)" value="—" blurred />
               </div>
-            )}
-          </div>
+            ) : (
+              <div
+                key="tiktok"
+                className="rounded-3xl border border-ink-800 bg-ink-900 p-7 shadow-card lg:col-span-2"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="eyebrow">TikTok Analytics</p>
+                  <VerifiedBadge />
+                </div>
+                <div className="mt-5">
+                  <TikTokAnalyticsBlock
+                    canViewAll={canViewAll}
+                    avgEngagementRate={
+                      canViewAll ? creator.tiktok_avg_engagement_rate : null
+                    }
+                    avgLikesPerView={canViewAll ? tiktokAvgLikesPerView : null}
+                  />
+                </div>
+                {canViewAll ? (
+                  <>
+                    <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                      <Stat
+                        label="Followers"
+                        value={
+                          creator.tiktok_follower_count != null
+                            ? creator.tiktok_follower_count.toLocaleString()
+                            : "—"
+                        }
+                      />
+                      <Stat
+                        label="Videos"
+                        value={
+                          creator.tiktok_video_count != null
+                            ? creator.tiktok_video_count.toLocaleString()
+                            : "—"
+                        }
+                      />
+                      <Stat
+                        label="Total Views"
+                        value={
+                          creator.tiktok_total_views != null
+                            ? creator.tiktok_total_views.toLocaleString()
+                            : "—"
+                        }
+                      />
+                      <Stat
+                        label="Total Likes"
+                        value={
+                          creator.tiktok_likes_count != null
+                            ? creator.tiktok_likes_count.toLocaleString()
+                            : "—"
+                        }
+                      />
+                    </div>
+                    {creator.tiktok_stats_last_updated && (
+                      <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-400">
+                        Last synced{" "}
+                        <LocalDateTime
+                          iso={creator.tiktok_stats_last_updated}
+                        />
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                    <Stat label="Followers" value="—" blurred />
+                    <Stat label="Videos" value="—" blurred />
+                    <Stat label="Total Views" value="—" blurred />
+                    <Stat label="Total Likes" value="—" blurred />
+                  </div>
+                )}
+              </div>
+            )
+          )}
 
           {/* Deal Stats */}
           {dealStatsVisible && (

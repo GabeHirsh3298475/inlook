@@ -14,6 +14,10 @@ export type PublicCreator = {
   channelUrl: string | null;
   tiktokUrl: string | null;
   tiktokFollowerCount: number | null;
+  tiktokProfilePictureUrl: string | null;
+  hasYouTube: boolean;
+  hasTikTok: boolean;
+  primaryPlatform: "youtube" | "tiktok" | "both";
   instagramUrl: string | null;
   instagramFollowerCount: number | null;
   priceLongVideo: number | null;
@@ -22,6 +26,8 @@ export type PublicCreator = {
   avgViewRate: number | null;
   avgEngagementRate: number | null;
   engagementRate30d: number | null;
+  tiktokAvgEngagementRate: number | null;
+  tiktokAvgLikesPerView: number | null;
   showDealStats: boolean;
   isSelf: boolean;
 };

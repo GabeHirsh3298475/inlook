@@ -59,6 +59,23 @@ function toPublicCreator(
   const canViewAll = isBrand || isSelf;
   const pricesHidden = !canViewAll && c.post_publicly === true;
 
+  const hasYouTube = !!c.youtube_channel_id;
+  const hasTikTok = !!c.tiktok_open_id;
+  const pp = c.primary_platform?.toLowerCase();
+  const primaryPlatform: "youtube" | "tiktok" | "both" =
+    pp === "youtube" || pp === "tiktok" || pp === "both"
+      ? pp
+      : hasYouTube && hasTikTok
+      ? "both"
+      : hasTikTok
+      ? "tiktok"
+      : "youtube";
+
+  const tiktokTotalViews = c.tiktok_total_views ?? 0;
+  const tiktokLikes = c.tiktok_likes_count ?? 0;
+  const tiktokAvgLikesPerView =
+    tiktokTotalViews > 0 ? (tiktokLikes / tiktokTotalViews) * 100 : null;
+
   return {
     id: c.id,
     name: c.display_name ?? c.full_name,
@@ -68,6 +85,10 @@ function toPublicCreator(
     channelUrl: c.channel_url,
     tiktokUrl: c.tiktok_url,
     tiktokFollowerCount: c.tiktok_follower_count,
+    tiktokProfilePictureUrl: c.tiktok_avatar_url,
+    hasYouTube,
+    hasTikTok,
+    primaryPlatform,
     instagramUrl: c.instagram_url,
     instagramFollowerCount: c.instagram_follower_count,
     priceLongVideo: pricesHidden ? null : c.price_long_video,
@@ -76,6 +97,8 @@ function toPublicCreator(
     avgViewRate: canViewAll ? c.avg_view_rate : null,
     avgEngagementRate: canViewAll ? c.avg_engagement_rate : null,
     engagementRate30d: canViewAll ? c.engagement_rate_30d : null,
+    tiktokAvgEngagementRate: canViewAll ? c.tiktok_avg_engagement_rate : null,
+    tiktokAvgLikesPerView: canViewAll ? tiktokAvgLikesPerView : null,
     showDealStats: c.show_deal_stats ?? true,
     isSelf,
   };
