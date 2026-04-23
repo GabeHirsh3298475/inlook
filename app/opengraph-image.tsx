@@ -24,22 +24,17 @@ export default async function OpengraphImage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 64,
-              height: 64,
-              borderRadius: 14,
-              backgroundColor: "#4A90FF",
-              color: "#0a0a0b",
-              fontSize: 40,
-              fontWeight: 700,
-            }}
-          >
-            ✓
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text */}
+          <img
+            width={64}
+            height={64}
+            src={
+              "data:image/svg+xml;utf8," +
+              encodeURIComponent(
+                `<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='#4A90FF'/><path d='M18 33 l10 10 l18 -22' fill='none' stroke='#0a0a0b' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/></svg>`
+              )
+            }
+          />
           <div
             style={{
               display: "flex",
