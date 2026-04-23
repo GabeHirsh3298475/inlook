@@ -11,6 +11,7 @@ import {
 } from "@/components/creator-card";
 import { MessageButton } from "@/components/message-button";
 import { PlatformIcon } from "@/components/platform-icon";
+import { VerifiedBadge } from "@/components/verified-badge";
 import { LocalDateTime } from "@/components/local-datetime";
 import { Clock, Handshake } from "lucide-react";
 
@@ -184,7 +185,10 @@ export default async function CreatorProfilePage({
 
           {/* Analytics */}
           <div className="rounded-3xl border border-ink-800 bg-ink-900 p-7 shadow-card lg:col-span-2">
-            <p className="eyebrow">YouTube Analytics</p>
+            <div className="flex items-center justify-between gap-3">
+              <p className="eyebrow">YouTube Analytics</p>
+              <VerifiedBadge />
+            </div>
             <div className="mt-5">
               <AnalyticsBlock
                 canViewAll={canViewAll}

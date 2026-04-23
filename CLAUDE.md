@@ -8,7 +8,7 @@ Brand-creator marketplace that connects small brands with verified YouTube creat
 - **Language:** TypeScript 5.6 strict
 - **Auth:** Clerk v7.2.2 (user auth, middleware protection, admin role via publicMetadata) + NextAuth 4.24 (YouTube OAuth for read-only channel stats)
 - **Auth backend:** `@clerk/backend` v3.2.12 for server-side Clerk invitation creation
-- **Database:** Supabase (creators, brands, conversations, messages, creator_waitlist tables — service role key for server ops)
+- **Database:** Supabase (creators, brands, conversations, messages, deals, creator_waitlist tables — service role key for server ops)
 - **Styling:** Tailwind CSS 3.4 with custom `ink` (dark theme grays) and `accent` (#d4ff3a green) color tokens
 - **Fonts:** Fraunces (display), IBM Plex Sans (body), IBM Plex Mono (mono)
 - **UI:** Framer Motion (transitions), Lucide React (icons)
@@ -45,7 +45,7 @@ app/
       save-youtube-tokens/ # Saves NextAuth YouTube tokens to creator row (used for re-sync)
       sync-youtube/     # Fetches YouTube Data API + Analytics API stats, returns channel info
     auth/[...nextauth]/ # NextAuth Google OAuth handler
-    admin/              # approve, reject, unreject, unpublish, toggle-visibility (creators); verify, reject-brand, unreject-brand (brands); mark-payment-link-sent, mark-paid (agreements); send-policy-update (mass email)
+    admin/              # approve, reject, unreject, unpublish, toggle-visibility (creators); verify, reject-brand, unreject-brand (brands); mark-payment-link-sent, mark-paid (agreements — mark-paid also snapshots into `deals`)
     brands/apply/       # POST brand application (inserts brand row + emails support@inlookdeals.com)
     brand/              # link-account, update-bio endpoints
     creator/            # link-account, publish, update-profile, refresh-stats endpoints
@@ -142,7 +142,7 @@ types/
   2. Analytics: Avg. View %, Avg. Engagement Rate. Blurred with tooltip "You must be signed in as a brand to view this data." when not a brand.
   3. Price section: centered "Price" label with Long/Short columns. Blurred with tooltip "The Creator requires brands to be signed in to view this data." when `post_publicly = true` and viewer is not a brand.
   4. "View profile" link → `/creators/[id]`.
-- `/creators/[id]` renders four sections: Basic Information (pic + name + niche + followers + social icons), About (bio), Price (same blur rules), Analytics (same blur rules, plus extra stats only shown to brands).
+- `/creators/[id]` renders four sections: Basic Information (pic + name + niche + followers + social icons), About (bio), Price (same blur rules), Analytics (same blur rules, plus extra stats only shown to brands). The Analytics card header reads "YouTube Analytics" on the left with a `VerifiedBadge` pinned to the top-right (badge is always rendered — the data blur only hides the *numbers*, the section is always marked as verified via platform APIs).
 - Filters: Niche (matches /apply options exactly), Platform (YouTube/TikTok/Instagram/X — platform filter checks which URLs the creator has linked), Followers (Under 10K, 10K–50K, 50K–100K, 100K–250K, 250K+). No Price filter.
 
 ### 5b. Admin visibility override (`admin_hidden`)
@@ -206,7 +206,8 @@ All branded dark theme with `#d4ff3a` accent:
 **YouTube Analytics API** (30-day window, `metrics=views,likes,comments,shares,averageViewPercentage,subscribersGained,subscribersLost`):
 - `avg_engagement_rate`: `(likes + comments + shares) / views * 100`
 - `avg_view_rate`: direct from API
-- `subscriber_growth_30d`: `(subscribersGained - subscribersLost) / subscriberCount * 100`
+- `subscriber_growth_30d`: `(subscribersGained - subscribersLost) / subscriberCount * 100` (percentage)
+- `subscriber_growth_30d_count`: `subscribersGained - subscribersLost` (absolute net delta, used to render `"-5.30% · -20"` alongside the percentage on dashboard + network profile)
 
 **Not currently available from YouTube API:**
 - "Saves" — not a YouTube metric. Engagement rate uses likes + comments + shares only.
@@ -224,7 +225,8 @@ All branded dark theme with `#d4ff3a` accent:
 - Two separate auth systems coexist: **Clerk** (user accounts, invitations, role management — roles: `admin` / `creator` / `brand`) and **NextAuth** (YouTube OAuth only, for read-only channel stats)
 - `sessionStorage` persists form data across OAuth redirect on `/apply`
 - Clerk middleware protects all routes except public pages and API endpoints listed in `middleware.ts`
-- Public routes: `/`, `/apply`, `/creators(.*)` (network list AND individual profile pages), `/brands`, `/join`, `/waitlist`, `/privacy`, `/terms`, `/pricing`, `/sign-in(.*)`, `/sign-up(.*)`, `/sign-in-token(.*)`, `/no-signup`, `/api/apply(.*)`, `/api/auth(.*)`, `/api/brands/apply`, `/api/waitlist`
+- Public routes: `/`, `/apply`, `/creators(.*)` (network list AND individual profile pages), `/brands`, `/join`, `/waitlist`, `/privacy`, `/terms`, `/pricing`, `/sign-in(.*)`, `/sign-up(.*)`, `/sign-in-token(.*)`, `/no-signup`, `/opengraph-image(.*)`, `/twitter-image(.*)`, `/icon(.*)`, `/robots.txt`, `/sitemap.xml`, `/api/apply(.*)`, `/api/auth(.*)`, `/api/brands/apply`, `/api/waitlist`, `/api/cron(.*)`
+- **Critical:** `/opengraph-image(.*)` MUST be public or Clerk middleware 404s the OG image route, breaking iMessage/Twitter/Slack link previews. If you add new file-convention metadata routes (e.g. `apple-icon.tsx`), add them to the public matcher too.
 - **Days on Inlook** counter starts at 1 (first day) using `Math.floor(diff / dayMs) + 1`
 
 ## Validation
@@ -257,7 +259,7 @@ Five tables in Supabase: `creators`, `brands`, `conversations`, `messages`, `cre
 
 ### `creators` table
 
-Key columns: `youtube_access_token`, `youtube_refresh_token`, `connected_at`, `subscriber_count`, `avg_view_rate`, `avg_engagement_rate`, `subscriber_growth_30d`, `total_channel_views`, `total_videos`, `profile_picture_url`, `display_name`, `username`, `channel_bio`, `youtube_channel_id`, `clerk_user_id`, `approved`, `rejected`, `published`, `price_long_video`, `price_short_video`, `tiktok_url`, `tiktok_follower_count`, `instagram_url`, `instagram_follower_count`, `deals_completed`, `stats_last_updated`, `post_publicly`, `admin_hidden`, `show_deal_stats`.
+Key columns: `youtube_access_token`, `youtube_refresh_token`, `connected_at`, `subscriber_count`, `avg_view_rate`, `avg_engagement_rate`, `subscriber_growth_30d`, `subscriber_growth_30d_count`, `total_channel_views`, `total_videos`, `profile_picture_url`, `display_name`, `username`, `channel_bio`, `youtube_channel_id`, `clerk_user_id`, `approved`, `rejected`, `published`, `price_long_video`, `price_short_video`, `tiktok_url`, `tiktok_follower_count`, `instagram_url`, `instagram_follower_count`, `deals_completed`, `stats_last_updated`, `post_publicly`, `admin_hidden`, `show_deal_stats`.
 
 ### `brands` table
 
@@ -354,6 +356,44 @@ ALTER TABLE conversations ADD COLUMN IF NOT EXISTS paid_short boolean NOT NULL D
 ALTER TABLE conversations ADD COLUMN IF NOT EXISTS paid_short_at timestamptz;
 ```
 
+### `deals` table
+
+Immutable historical ledger of completed sponsorships. One row per `(conversation_id, format)` pair that reaches paid status. Inserted by `POST /api/admin/mark-paid` at the false→true transition of `paid_<format>` — snapshots the state at that moment so later profile edits (price changes, subscriber growth) don't distort historical reporting. `conversations` remains the live mutable state; `deals` is the append-only permanent record. No UI page — queried directly in Supabase for revenue/activity reporting.
+
+Columns: `id` (uuid pk), `conversation_id`, `brand_id`, `creator_id` (fks, `ON DELETE SET NULL` so the ledger survives profile deletion), `format` ('long' or 'short'), `brand_name`, `creator_name`, `creator_youtube_channel_id`, `price`, `platform_fee` (15% of price), `creator_payout` (85% of price), `creator_subscribers_at_deal`, `creator_avg_view_rate`, `creator_avg_engagement_rate`, `offered_at`, `agreed_at`, `payment_link_sent_at`, `paid_at`, `created_at`.
+
+Price is pulled from `creators.price_long_video` / `price_short_video` at the moment of payment — not from a negotiated amount. If pricing ever becomes per-deal, update `mark-paid` and this snapshot field.
+
+Migration:
+```sql
+CREATE TABLE IF NOT EXISTS deals (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id uuid REFERENCES conversations(id) ON DELETE SET NULL,
+  brand_id uuid REFERENCES brands(id) ON DELETE SET NULL,
+  creator_id uuid REFERENCES creators(id) ON DELETE SET NULL,
+  format text NOT NULL CHECK (format IN ('long','short')),
+  brand_name text NOT NULL,
+  creator_name text NOT NULL,
+  creator_youtube_channel_id text,
+  price numeric NOT NULL,
+  platform_fee numeric NOT NULL,
+  creator_payout numeric NOT NULL,
+  creator_subscribers_at_deal integer,
+  creator_avg_view_rate numeric,
+  creator_avg_engagement_rate numeric,
+  offered_at timestamptz,
+  agreed_at timestamptz,
+  payment_link_sent_at timestamptz,
+  paid_at timestamptz NOT NULL,
+  created_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS deals_brand_idx ON deals(brand_id);
+CREATE INDEX IF NOT EXISTS deals_creator_idx ON deals(creator_id);
+CREATE INDEX IF NOT EXISTS deals_paid_at_idx ON deals(paid_at DESC);
+
+ALTER TABLE creators ADD COLUMN IF NOT EXISTS subscriber_growth_30d_count integer;
+```
+
 ### `creator_waitlist` table
 
 Non-YouTube creator waitlist — people who want to join Inlook but aren't primarily on YouTube (Inlook launches YouTube-only). Populated by `POST /api/waitlist` from `/waitlist` page. No auth; public write.
@@ -395,6 +435,8 @@ ALTER TABLE creators ADD COLUMN IF NOT EXISTS admin_hidden boolean DEFAULT false
 - Use **"platform fee"**, not "commission" — commission implies agency/talent-manager relationship (triggers CA/NY talent-agency licensing); platform fee is the correct marketplace term and matches Stripe Connect's `application_fee_amount`.
 - Clickwrap-style consent is enforced at three entry points: creator apply (`Connect YouTube Account` button, in `app/apply/apply-client.tsx`), brand apply (`Request access` button, in `components/brand-application-form.tsx`), and waitlist (`Join the waitlist` button, in `app/waitlist/waitlist-client.tsx`). Each has a short line beneath the CTA: "By [action], you agree to our Terms of Service and Privacy Policy."
 - TOS Section 5 requires creators to disclose sponsored content (e.g., `#ad`) per FTC Endorsement Guides. Creators indemnify Inlook for non-disclosure claims (Section 14).
+- **Admin access disclosure:** TOS §3 and Privacy §4 disclose that Inlook administrators can view all profile data, verified engagement/analytics metrics, emails, and message content, for operating/moderating the Service. Keep this in sync if access scope changes.
+- Both policies carry Effective/Last-updated date **April 22, 2026**. When making any material change, bump both dates in [app/terms/page.tsx](app/terms/page.tsx) and [app/privacy/page.tsx](app/privacy/page.tsx).
 - Both policies contain `[⚠️ LEGAL REVIEW REQUIRED]` markers that must be addressed by counsel before public launch — notably governing-law/venue, fee/refund language, jurisdiction-specific rights (GDPR/CCPA), and cross-border transfer mechanisms.
 - Footer copyright is hardcoded to "© 2026 Inlook. All rights reserved." per founder preference.
 

@@ -1,12 +1,12 @@
 # Graph Report - /Users/gabrielhirsh/inlook  (2026-04-22)
 
 ## Corpus Check
-- 82 files · ~52,306 words
+- 81 files · ~52,811 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 163 nodes · 159 edges · 52 communities detected
-- Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 19 edges (avg confidence: 0.8)
+- 160 nodes · 152 edges · 52 communities detected
+- Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 18 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
@@ -64,10 +64,10 @@
 - [[_COMMUNITY_Community 51|Community 51]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `POST()` - 40 edges
-2. `getTransporter()` - 12 edges
-3. `esc()` - 12 edges
-4. `layout()` - 10 edges
+1. `POST()` - 38 edges
+2. `getTransporter()` - 11 edges
+3. `esc()` - 11 edges
+4. `layout()` - 9 edges
 5. `GET()` - 7 edges
 6. `sendApplicationConfirmation()` - 5 edges
 7. `sendWelcomeEmail()` - 5 edges
@@ -98,11 +98,11 @@ Cohesion: 0.14
 Nodes (4): update(), fetchAgreements(), GET(), refreshOne()
 
 ### Community 2 - "Community 2"
-Cohesion: 0.43
-Nodes (14): esc(), getTransporter(), layout(), sendAdminNotification(), sendApplicationConfirmation(), sendBrandAgreementEmail(), sendBrandApplicationConfirmation(), sendBrandApplicationNotification() (+6 more)
+Cohesion: 0.45
+Nodes (13): esc(), getTransporter(), layout(), sendAdminNotification(), sendApplicationConfirmation(), sendBrandAgreementEmail(), sendBrandApplicationConfirmation(), sendBrandApplicationNotification() (+5 more)
 
 ### Community 3 - "Community 3"
-Cohesion: 0.15
+Cohesion: 0.17
 Nodes (0): 
 
 ### Community 4 - "Community 4"
@@ -383,13 +383,13 @@ Nodes (0):
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `POST()` connect `Community 0` to `Community 1`, `Community 2`?**
-  _High betweenness centrality (0.115) - this node is a cross-community bridge._
+  _High betweenness centrality (0.111) - this node is a cross-community bridge._
 - **Why does `GET()` connect `Community 1` to `Community 0`?**
   _High betweenness centrality (0.034) - this node is a cross-community bridge._
 - **Why does `update()` connect `Community 1` to `Community 0`?**
   _High betweenness centrality (0.018) - this node is a cross-community bridge._
-- **Are the 15 inferred relationships involving `POST()` (e.g. with `checkLimit()` and `getIp()`) actually correct?**
-  _`POST()` has 15 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 14 inferred relationships involving `POST()` (e.g. with `checkLimit()` and `getIp()`) actually correct?**
+  _`POST()` has 14 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 3 inferred relationships involving `GET()` (e.g. with `fetchAgreements()` and `POST()`) actually correct?**
   _`GET()` has 3 INFERRED edges - model-reasoned connections that need verification._
 - **Should `Community 0` be split into smaller, more focused modules?**
