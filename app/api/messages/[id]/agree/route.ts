@@ -1,6 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { requestOrigin } from "@/lib/request-origin";
 import {
   sendCreatorAgreementEmail,
   sendBrandAgreementEmail,
@@ -86,7 +87,7 @@ export async function POST(
     );
 
   try {
-    const baseUrl = process.env.NEXTAUTH_URL ?? "https://inlookdeals.com";
+    const baseUrl = requestOrigin(req);
     const messagesUrl = `${baseUrl}/messages?thread=${conversationId}`;
 
     const [{ data: brandRow }, { data: creatorRow }] = await Promise.all([

@@ -2,6 +2,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { createClerkClient } from "@clerk/backend";
 import { supabase } from "@/lib/supabase";
 import { sendBrandWelcomeEmail } from "@/lib/email";
+import { requestOrigin } from "@/lib/request-origin";
 import { NextResponse } from "next/server";
 
 const clerk = createClerkClient({
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
   if (!brand)
     return NextResponse.json({ success: true, invited: false });
 
-  const baseUrl = process.env.NEXTAUTH_URL || "https://inlookdeals.com";
+  const baseUrl = requestOrigin(req);
   let inviteUrl = `${baseUrl}/sign-in`;
 
   try {
