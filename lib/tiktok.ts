@@ -25,12 +25,11 @@ function env(): EnvBundle {
   return { key, secret, signingSecret };
 }
 
-export function redirectUri(): string {
-  const base =
-    process.env.NEXTAUTH_URL ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "https://inlookdeals.com";
-  return `${base.replace(/\/$/, "")}/api/tiktok/callback`;
+export function redirectUriFrom(req: Request): string {
+  const url = new URL(req.url);
+  const proto = req.headers.get("x-forwarded-proto") ?? url.protocol.replace(":", "");
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? url.host;
+  return `${proto}://${host}/api/tiktok/callback`;
 }
 
 /* ─── PKCE ─────────────────────────────────────────────── */
@@ -136,13 +135,17 @@ export function verifyCookie(raw: string | undefined): TikTokSession | null {
 
 /* ─── OAuth flow ───────────────────────────────────────── */
 
-export function buildAuthUrl(state: string, codeChallenge: string): string {
+export function buildAuthUrl(
+  state: string,
+  codeChallenge: string,
+  redirectUri: string
+): string {
   const { key } = env();
   const qs = new URLSearchParams({
     client_key: key,
     response_type: "code",
     scope: TIKTOK_SCOPES,
-    redirect_uri: redirectUri(),
+    redirect_uri: redirectUri,
     state,
     code_challenge: codeChallenge,
     code_challenge_method: "S256",
@@ -162,7 +165,8 @@ type TokenResponse = {
 
 export async function exchangeCode(
   code: string,
-  verifier: string
+  verifier: string,
+  redirectUri: string
 ): Promise<TokenResponse> {
   const { key, secret } = env();
   const res = await fetch(TIKTOK_TOKEN_URL, {
@@ -176,7 +180,7 @@ export async function exchangeCode(
       client_secret: secret,
       code,
       grant_type: "authorization_code",
-      redirect_uri: redirectUri(),
+      redirect_uri: redirectUri,
       code_verifier: verifier,
     }),
   });

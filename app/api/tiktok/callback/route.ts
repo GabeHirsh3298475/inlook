@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   exchangeCode,
   fetchUserInfo,
+  redirectUriFrom,
   signCookie,
   TIKTOK_COOKIE,
   TIKTOK_STATE_COOKIE,
@@ -30,7 +31,7 @@ export async function GET(req: NextRequest) {
   if (!parsed || parsed.state !== returnedState)
     return redirect(req, { tiktok: "error", reason: "bad_state" });
 
-  const tokenRes = await exchangeCode(code, parsed.verifier);
+  const tokenRes = await exchangeCode(code, parsed.verifier, redirectUriFrom(req));
   if (!tokenRes.access_token) {
     console.error("[tiktok/callback] token exchange failed", tokenRes);
     return redirect(req, { tiktok: "error", reason: "token" });

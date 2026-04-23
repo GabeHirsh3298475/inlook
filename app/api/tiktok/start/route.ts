@@ -1,17 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import crypto from "crypto";
 import {
   buildAuthUrl,
   generatePkce,
+  redirectUriFrom,
   signState,
   TIKTOK_STATE_COOKIE,
 } from "@/lib/tiktok";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const state = crypto.randomBytes(16).toString("hex");
     const { verifier, challenge } = generatePkce();
-    const url = buildAuthUrl(state, challenge);
+    const url = buildAuthUrl(state, challenge, redirectUriFrom(req));
 
     const res = NextResponse.redirect(url);
     res.cookies.set(TIKTOK_STATE_COOKIE, signState(state, verifier), {
