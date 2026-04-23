@@ -3,11 +3,12 @@ import crypto from "crypto";
 const TIKTOK_AUTHORIZE_URL = "https://www.tiktok.com/v2/auth/authorize/";
 const TIKTOK_TOKEN_URL = "https://open.tiktokapis.com/v2/oauth/token/";
 const TIKTOK_USER_INFO_URL =
-  "https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,avatar_large_url,display_name,follower_count,following_count,likes_count,video_count";
+  "https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,avatar_large_url,display_name,profile_deep_link,follower_count,following_count,likes_count,video_count";
 const TIKTOK_VIDEO_LIST_URL =
   "https://open.tiktokapis.com/v2/video/list/?fields=id,create_time,view_count,like_count,comment_count,share_count";
 
-export const TIKTOK_SCOPES = "user.info.basic,user.info.stats,video.list";
+export const TIKTOK_SCOPES =
+  "user.info.basic,user.info.profile,user.info.stats,video.list";
 export const TIKTOK_COOKIE = "inlook_tiktok";
 export const TIKTOK_STATE_COOKIE = "inlook_tiktok_state";
 
@@ -89,6 +90,7 @@ export type TikTokSession = {
   openId: string;
   displayName: string | null;
   username: string | null;
+  profileDeepLink: string | null;
   avatarUrl: string | null;
   followerCount: number | null;
   likesCount: number | null;
@@ -213,6 +215,7 @@ export type TikTokUserInfo = {
   openId: string;
   displayName: string | null;
   username: string | null;
+  profileDeepLink: string | null;
   avatarUrl: string | null;
   followerCount: number | null;
   likesCount: number | null;
@@ -231,6 +234,7 @@ export async function fetchUserInfo(
       user?: {
         open_id?: string;
         display_name?: string;
+        profile_deep_link?: string;
         avatar_url?: string;
         avatar_large_url?: string;
         follower_count?: number;
@@ -259,6 +263,7 @@ export async function fetchUserInfo(
     openId: u.open_id,
     displayName: u.display_name ?? null,
     username: null,
+    profileDeepLink: u.profile_deep_link ?? null,
     avatarUrl: u.avatar_large_url ?? u.avatar_url ?? null,
     followerCount: u.follower_count ?? null,
     likesCount: u.likes_count ?? null,

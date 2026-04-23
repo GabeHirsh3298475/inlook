@@ -70,6 +70,7 @@ export async function POST(req: Request) {
       youtube_refresh_token: session?.refreshToken ?? null,
       tiktok_open_id: tiktokSession?.openId ?? null,
       tiktok_display_name: tiktokSession?.displayName ?? null,
+      tiktok_url: tiktokSession?.profileDeepLink ?? null,
       tiktok_avatar_url: tiktokSession?.avatarUrl ?? null,
       tiktok_access_token: tiktokSession?.accessToken ?? null,
       tiktok_refresh_token: tiktokSession?.refreshToken ?? null,

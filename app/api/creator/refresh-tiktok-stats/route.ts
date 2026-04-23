@@ -68,6 +68,7 @@ export async function POST() {
         tokenRes.refresh_token ?? creator.tiktok_refresh_token,
       tiktok_open_id: info.openId,
       tiktok_display_name: info.displayName,
+      tiktok_url: info.profileDeepLink,
       tiktok_avatar_url: info.avatarUrl,
       tiktok_follower_count: info.followerCount,
       tiktok_likes_count: info.likesCount,

@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
     openId: info.openId,
     displayName: info.displayName,
     username: info.username,
+    profileDeepLink: info.profileDeepLink,
     avatarUrl: info.avatarUrl,
     followerCount: info.followerCount,
     likesCount: info.likesCount,
