@@ -283,8 +283,16 @@ export function ApplyClient() {
                         Connect at least one account
                       </p>
                       <p className="mt-1 font-sans text-xs text-ink-400">
-                        Connect YouTube, TikTok, or both. Follower counts are
-                        pulled automatically.
+                        Connect YouTube, TikTok, or both. By clicking
+                        connect, you agree to our{" "}
+                        <a href="/privacy" className="text-accent underline-offset-4 hover:underline">
+                          privacy policy
+                        </a>{" "}
+                        and{" "}
+                        <a href="/terms" className="text-accent underline-offset-4 hover:underline">
+                          terms of service
+                        </a>
+                        .
                       </p>
                     </div>
 

@@ -114,9 +114,11 @@ export default function PrivacyPolicyPage() {
                 >
                   tiktok.com/setting/connected-apps
                 </a>{" "}
-                (Settings &rarr; Security and permissions &rarr; Manage app
-                permissions on mobile). See Section 5 for how to also have
-                Inlook delete the stored tokens and cached TikTok data.
+                (on mobile: Settings and privacy &rarr; Security and
+                permissions &rarr; Apps and services permissions &rarr;
+                choose Inlook &rarr; Remove access). See Section 5 for how
+                to also have Inlook delete the stored tokens and cached
+                TikTok data.
               </p>
               <p>
                 <strong>Automatically collected data.</strong> Our hosting
@@ -281,10 +283,10 @@ export default function PrivacyPolicyPage() {
                   >
                     tiktok.com/setting/connected-apps
                   </a>{" "}
-                  (or, on mobile: TikTok app &rarr; Profile &rarr; Menu
-                  &rarr; Settings and privacy &rarr; Security and permissions
-                  &rarr; Manage app permissions), locate the Inlook entry,
-                  and tap &ldquo;Remove.&rdquo; This immediately invalidates
+                  (or, in the TikTok mobile app: Settings and privacy
+                  &rarr; Security and permissions &rarr; Apps and services
+                  permissions &rarr; choose Inlook &rarr; click
+                  &ldquo;Remove access&rdquo;). This immediately invalidates
                   the access and refresh tokens Inlook holds for your
                   account.
                 </li>

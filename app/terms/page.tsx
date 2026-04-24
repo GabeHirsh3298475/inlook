@@ -153,9 +153,10 @@ export default function TermsOfServicePage() {
                 >
                   tiktok.com/setting/connected-apps
                 </a>{" "}
-                (or on mobile: Settings and privacy &rarr; Security and
-                permissions &rarr; Manage app permissions &rarr; Inlook
-                &rarr; Remove). To also have Inlook delete the cached
+                (or, in the TikTok mobile app: Settings and privacy
+                &rarr; Security and permissions &rarr; Apps and services
+                permissions &rarr; choose Inlook &rarr; click &ldquo;Remove
+                access&rdquo;). To also have Inlook delete the cached
                 TikTok fields (tokens, display name, avatar URL, follower
                 count, video aggregates, profile deep link) from our
                 records, email{" "}
