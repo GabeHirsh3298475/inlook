@@ -18,7 +18,7 @@ export default function TermsOfServicePage() {
             Terms of Service
           </h1>
           <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-400">
-            Effective date: April 22, 2026 · Last updated: April 22, 2026
+            Effective date: April 22, 2026 · Last updated: April 23, 2026
           </p>
 
           <div className="mt-10 space-y-8 font-sans text-[15px] leading-relaxed text-ink-200">
@@ -26,7 +26,7 @@ export default function TermsOfServicePage() {
               These Terms of Service (&ldquo;Terms&rdquo;) govern your access to
               and use of the Inlook website, creator network, brand dashboard,
               and messaging tools (together, the &ldquo;Service&rdquo;). By
-              creating an account, connecting your YouTube channel, submitting
+              creating an account, connecting your YouTube or TikTok account, submitting
               a brand application, or otherwise using the Service, you agree to
               these Terms and our{" "}
               <Link href="/privacy" className="text-accent">
@@ -63,7 +63,7 @@ export default function TermsOfServicePage() {
             <Section title="3. What the Service does (and what it does not)">
               <p>
                 Inlook is a marketplace that helps brands discover verified
-                YouTube creators and communicate with them about paid
+                YouTube and TikTok creators and communicate with them about paid
                 product-launch sponsorships. Inlook provides profile hosting,
                 analytics verification, messaging, and (where applicable)
                 payment facilitation.
@@ -91,13 +91,21 @@ export default function TermsOfServicePage() {
               </p>
             </Section>
 
-            <Section title="4. YouTube integration">
+            <Section title="4. Platform integrations (YouTube and TikTok)">
               <p>
-                Connecting your YouTube channel is optional but required to
-                publish a verified creator profile. By connecting, you grant
-                Inlook read-only access to your YouTube channel data and
-                analytics through the Google OAuth flow. You may revoke
-                access at any time at{" "}
+                Connecting at least one supported platform account (YouTube
+                and/or TikTok) is optional but required to publish a
+                verified creator profile on Inlook. Creators may connect
+                either platform, or both; the platform(s) they connect
+                determine which verified metrics appear on the creator
+                network.
+              </p>
+              <p>
+                <strong>YouTube.</strong> By connecting, you grant Inlook
+                read-only access to your YouTube channel data and analytics
+                through the Google OAuth flow (<code>youtube.readonly</code>{" "}
+                and <code>yt-analytics.readonly</code> scopes). You may
+                revoke access at any time at{" "}
                 <a
                   href="https://myaccount.google.com/permissions"
                   target="_blank"
@@ -106,8 +114,7 @@ export default function TermsOfServicePage() {
                 >
                   myaccount.google.com/permissions
                 </a>
-                . Revoking access may remove you from the creator network.
-                Your use of YouTube data through our Service is also subject
+                . Your use of YouTube data through our Service is subject
                 to the{" "}
                 <a
                   href="https://www.youtube.com/t/terms"
@@ -127,6 +134,76 @@ export default function TermsOfServicePage() {
                   Google Privacy Policy
                 </a>
                 .
+              </p>
+              <p>
+                <strong>TikTok.</strong> By connecting, you grant Inlook
+                read-only access to your TikTok account data and public
+                video metrics through TikTok Login Kit (OAuth 2.0 with
+                PKCE) under the <code>user.info.basic</code>,{" "}
+                <code>user.info.profile</code>, <code>user.info.stats</code>
+                , and <code>video.list</code> scopes. Inlook does not post
+                on your behalf, does not access private videos, and does
+                not request publish or write scopes. You may revoke access
+                at any time at{" "}
+                <a
+                  href="https://www.tiktok.com/setting/connected-apps"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent"
+                >
+                  tiktok.com/setting/connected-apps
+                </a>{" "}
+                (or on mobile: Settings and privacy &rarr; Security and
+                permissions &rarr; Manage app permissions &rarr; Inlook
+                &rarr; Remove). To also have Inlook delete the cached
+                TikTok fields (tokens, display name, avatar URL, follower
+                count, video aggregates, profile deep link) from our
+                records, email{" "}
+                <a
+                  href="mailto:support@inlookdeals.com"
+                  className="text-accent"
+                >
+                  support@inlookdeals.com
+                </a>{" "}
+                from the address on file &mdash; see our{" "}
+                <a href="/privacy" className="text-accent">
+                  Privacy Policy &sect; 5
+                </a>{" "}
+                for full procedure and timelines. Your use of TikTok data
+                through our Service is subject to the{" "}
+                <a
+                  href="https://www.tiktok.com/legal/page/global/terms-of-service/en"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent"
+                >
+                  TikTok Terms of Service
+                </a>
+                , the{" "}
+                <a
+                  href="https://developers.tiktok.com/doc/tiktok-api-terms-of-service/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent"
+                >
+                  TikTok API Terms of Service
+                </a>
+                , and the{" "}
+                <a
+                  href="https://www.tiktok.com/legal/page/global/privacy-policy/en"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent"
+                >
+                  TikTok Privacy Policy
+                </a>
+                .
+              </p>
+              <p>
+                Revoking access on either platform may remove you from the
+                creator network if the revoked platform is your only
+                connected account; reconnecting (or connecting the other
+                platform) restores eligibility.
               </p>
             </Section>
 
@@ -171,7 +248,7 @@ export default function TermsOfServicePage() {
                 consumer-protection, and intellectual-property law). Brands
                 must not use the Service to promote illegal products,
                 age-restricted products to minors, misleading claims, or
-                content that violates the YouTube Terms of Service or
+                content that violates the YouTube or TikTok Terms of Service or
                 Community Guidelines.
               </p>
             </Section>
@@ -267,7 +344,7 @@ export default function TermsOfServicePage() {
             <Section title="10. Third-party services and links">
               <p>
                 The Service integrates with third-party services, including
-                Google/YouTube, Clerk, Supabase, and (in the future) Stripe.
+                Google/YouTube, TikTok, Clerk, Supabase, and (in the future) Stripe.
                 Your use of those services is governed by their own terms and
                 privacy policies. We are not responsible for third-party
                 services or for content linked from the Service.
@@ -289,7 +366,7 @@ export default function TermsOfServicePage() {
                 <strong>In plain English:</strong> Inlook is a marketplace, not
                 a guarantor. We cannot promise that any brand-creator deal
                 will succeed, that a creator&rsquo;s content will convert, or
-                that third-party data (like YouTube analytics) is always
+                that third-party data (like YouTube or TikTok analytics) is always
                 perfectly current or error-free. The Service is provided
                 &ldquo;as is.&rdquo;
               </p>
@@ -297,10 +374,11 @@ export default function TermsOfServicePage() {
                 TO THE MAXIMUM EXTENT PERMITTED BY LAW, INLOOK DISCLAIMS ALL
                 WARRANTIES, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY,
                 FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, ACCURACY
-                OF DATA PROVIDED BY THIRD PARTIES (INCLUDING YOUTUBE), AND THE
-                RESULT OF ANY DEAL BETWEEN A BRAND AND A CREATOR. Verified
-                analytics reflect data reported to us by the YouTube APIs at
-                the time of sync and may not reflect real-time values.
+                OF DATA PROVIDED BY THIRD PARTIES (INCLUDING YOUTUBE AND
+                TIKTOK), AND THE RESULT OF ANY DEAL BETWEEN A BRAND AND A
+                CREATOR. Verified analytics reflect data reported to us by
+                the YouTube and TikTok APIs at the time of sync and may not
+                reflect real-time values.
               </p>
             </Section>
 

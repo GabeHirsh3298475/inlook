@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "How Inlook collects, stores, and uses your data. Covers YouTube OAuth, Supabase storage, Clerk authentication, and your rights as a user.",
+    "How Inlook collects, stores, and uses your data. Covers YouTube and TikTok OAuth, Supabase storage, Clerk authentication, and your rights as a user.",
   alternates: { canonical: "/privacy" },
 };
 
@@ -17,7 +17,7 @@ export default function PrivacyPolicyPage() {
             Privacy Policy
           </h1>
           <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.18em] text-ink-400">
-            Effective date: April 22, 2026 · Last updated: April 22, 2026
+            Effective date: April 22, 2026 · Last updated: April 23, 2026
           </p>
 
           <div className="prose-inlook mt-10 space-y-8 font-sans text-[15px] leading-relaxed text-ink-200">
@@ -91,6 +91,34 @@ export default function PrivacyPolicyPage() {
                 .
               </p>
               <p>
+                <strong>TikTok data.</strong> When a creator clicks
+                &ldquo;Connect TikTok Account,&rdquo; we use TikTok Login Kit
+                (OAuth 2.0 with PKCE) to request read-only access under the{" "}
+                <code>user.info.basic</code>, <code>user.info.profile</code>,{" "}
+                <code>user.info.stats</code>, and <code>video.list</code>{" "}
+                scopes. We store the resulting access token and refresh token
+                server-side so we can pull your TikTok open ID, display name,
+                public profile URL (<code>profile_deep_link</code>), avatar
+                URL, follower count, total likes, total video count, and
+                per-video metrics (views, likes, comments, shares, and
+                creation time) that we aggregate into lifetime and 30-day
+                engagement totals. We never post on your behalf, we never
+                request write or publish scopes, and we never access private
+                videos. You can revoke our access at any time from your
+                TikTok account at{" "}
+                <a
+                  href="https://www.tiktok.com/setting/connected-apps"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent"
+                >
+                  tiktok.com/setting/connected-apps
+                </a>{" "}
+                (Settings &rarr; Security and permissions &rarr; Manage app
+                permissions on mobile). See Section 5 for how to also have
+                Inlook delete the stored tokens and cached TikTok data.
+              </p>
+              <p>
                 <strong>Automatically collected data.</strong> Our hosting
                 provider and infrastructure vendors log IP addresses, user-agent
                 strings, and request timestamps for security and abuse
@@ -105,8 +133,9 @@ export default function PrivacyPolicyPage() {
                 Clerk user ID, IP address), commercial information
                 (application details, deal history), internet activity
                 (request logs, messages sent within the Service), and
-                professional information (YouTube channel statistics and
-                metadata that the creator has chosen to connect). We do not
+                professional information (YouTube and TikTok channel/account
+                statistics and metadata that the creator has chosen to
+                connect). We do not
                 sell or &ldquo;share&rdquo; personal information as those
                 terms are defined under the California Consumer Privacy Act
                 (CCPA/CPRA). See Section 8 for how California residents may
@@ -117,7 +146,7 @@ export default function PrivacyPolicyPage() {
             <Section title="3. How we use information">
               <ul className="list-disc space-y-2 pl-6">
                 <li>To provide and operate the Service (account setup, verification, messaging, brand discovery).</li>
-                <li>To verify creator analytics via the YouTube APIs so brands see accurate engagement data.</li>
+                <li>To verify creator analytics via the YouTube and TikTok APIs so brands see accurate engagement data.</li>
                 <li>To send transactional emails: application confirmations, welcome / verification emails, first-message and first-reply notifications, and agreement notifications.</li>
                 <li>To respond to support requests sent to <a href="mailto:support@inlookdeals.com" className="text-accent">support@inlookdeals.com</a>.</li>
                 <li>To prevent fraud, abuse, and violations of our Terms of Service.</li>
@@ -139,6 +168,7 @@ export default function PrivacyPolicyPage() {
                 <li><strong>Clerk</strong> — authentication, invitations, and role management.</li>
                 <li><strong>Supabase</strong> — database and storage for creator, brand, conversation, and message records.</li>
                 <li><strong>Google / YouTube</strong> — OAuth and read-only analytics, used only when a creator chooses to connect their channel.</li>
+                <li><strong>TikTok</strong> — Login Kit OAuth and read-only user/video data, used only when a creator chooses to connect their TikTok account.</li>
                 <li><strong>Our SMTP email provider</strong> — transactional email delivery.</li>
                 <li><strong>Stripe (planned)</strong> — payment processing once paid transactions launch. We will update this Policy before enabling Stripe.</li>
               </ul>
@@ -170,10 +200,10 @@ export default function PrivacyPolicyPage() {
               </p>
             </Section>
 
-            <Section title="5. YouTube API Services">
+            <Section title="5. Platform API services and how to revoke access">
               <p>
-                Inlook&rsquo;s use of information received from YouTube APIs
-                adheres to the{" "}
+                <strong>YouTube.</strong> Inlook&rsquo;s use of information
+                received from YouTube APIs adheres to the{" "}
                 <a
                   href="https://developers.google.com/youtube/terms/api-services-terms-of-service"
                   target="_blank"
@@ -191,8 +221,8 @@ export default function PrivacyPolicyPage() {
                 >
                   Google Privacy Policy
                 </a>
-                . You can revoke Inlook&rsquo;s access to your YouTube data at
-                any time at{" "}
+                . You can revoke Inlook&rsquo;s access to your YouTube data
+                at any time at{" "}
                 <a
                   href="https://myaccount.google.com/permissions"
                   target="_blank"
@@ -203,6 +233,86 @@ export default function PrivacyPolicyPage() {
                 </a>
                 .
               </p>
+              <p>
+                <strong>TikTok.</strong> Inlook&rsquo;s use of information
+                received from TikTok Login Kit and the TikTok for Developers
+                APIs adheres to the{" "}
+                <a
+                  href="https://www.tiktok.com/legal/page/global/terms-of-service/en"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent"
+                >
+                  TikTok Terms of Service
+                </a>
+                , the{" "}
+                <a
+                  href="https://developers.tiktok.com/doc/tiktok-api-terms-of-service/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent"
+                >
+                  TikTok API Terms of Service
+                </a>
+                , and the{" "}
+                <a
+                  href="https://www.tiktok.com/legal/page/global/privacy-policy/en"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent"
+                >
+                  TikTok Privacy Policy
+                </a>
+                .
+              </p>
+              <p>
+                <strong>How to revoke Inlook&rsquo;s permissions and delete
+                your TikTok data from Inlook.</strong> You can disconnect
+                Inlook from your TikTok account in two steps:
+              </p>
+              <ol className="list-decimal space-y-2 pl-6">
+                <li>
+                  Revoke authorization on TikTok&rsquo;s side by visiting{" "}
+                  <a
+                    href="https://www.tiktok.com/setting/connected-apps"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent"
+                  >
+                    tiktok.com/setting/connected-apps
+                  </a>{" "}
+                  (or, on mobile: TikTok app &rarr; Profile &rarr; Menu
+                  &rarr; Settings and privacy &rarr; Security and permissions
+                  &rarr; Manage app permissions), locate the Inlook entry,
+                  and tap &ldquo;Remove.&rdquo; This immediately invalidates
+                  the access and refresh tokens Inlook holds for your
+                  account.
+                </li>
+                <li>
+                  To have Inlook delete the tokens and cached TikTok data
+                  (display name, avatar URL, follower count, video
+                  aggregates, profile deep link) from our records as well,
+                  email{" "}
+                  <a
+                    href="mailto:support@inlookdeals.com"
+                    className="text-accent"
+                  >
+                    support@inlookdeals.com
+                  </a>{" "}
+                  from the address on file. We will remove the stored
+                  TikTok fields from your creator record within 7 days and
+                  purge them from encrypted backups within 90 days. If
+                  you also want your full Inlook account deleted, say so in
+                  the email (see Section 7 &mdash; Data retention, and
+                  Section 8 &mdash; Your choices and rights).
+                </li>
+              </ol>
+              <p>
+                Revoking TikTok access will remove your TikTok metrics from
+                the creator network and, if TikTok is your only connected
+                platform, will unpublish your profile until you reconnect
+                another platform.
+              </p>
             </Section>
 
             <Section title="6. Cookies and similar technologies">
@@ -211,7 +321,9 @@ export default function PrivacyPolicyPage() {
                 today. Our authentication provider (Clerk) sets session cookies
                 that are strictly necessary for you to stay signed in. Google
                 may set cookies during the OAuth flow when you connect your
-                YouTube account. You can clear or block cookies in your
+                YouTube account. TikTok may set cookies during its Login Kit
+                OAuth flow when you connect your TikTok account. You can
+                clear or block cookies in your
                 browser; doing so may prevent sign-in from working. We do not
                 currently use advertising or third-party analytics cookies. If
                 we add any non-essential cookies in the future, we will update
@@ -235,8 +347,10 @@ export default function PrivacyPolicyPage() {
             <Section title="8. Your choices and rights">
               <p>
                 You can update your profile information from your dashboard or
-                by emailing us. You can revoke YouTube access at any time from
-                your Google account. To request access, correction, or
+                by emailing us. You can revoke YouTube access at any time
+                from your Google account, and TikTok access at any time from
+                your TikTok account (see Section 5 for step-by-step
+                instructions). To request access, correction, or
                 deletion of your personal data, email{" "}
                 <a href="mailto:support@inlookdeals.com" className="text-accent">
                   support@inlookdeals.com
